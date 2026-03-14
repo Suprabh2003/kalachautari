@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --experimental-sqlite
 'use strict';
 
 const express    = require('express');
@@ -13,7 +13,7 @@ const { v4: uuid } = require('uuid');
 const fs         = require('fs');
 
 // ─── Node 22 built-in SQLite ──────────────────────────────────────────────────
-const DatabaseSync = require('better-sqlite3');
+const { DatabaseSync } = require('node:sqlite');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'kalachautari-secret-2025';
 const PORT       = process.env.PORT || 3000;
@@ -599,71 +599,293 @@ wss.on('connection', (ws, req) => {
   ws.send(JSON.stringify({ event: 'connected', data: { userId } }));
 });
 
-// fallback to index.html for SPA
-// --- ADMIN PANEL ---
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'kalachautari-admin-2025';
-app.get('/api/admin-panel', (req, res) => {
-  const p = req.query.p;
-  if (p !== ADMIN_PASSWORD) {
-    return res.send(`<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:400px;margin:100px auto;padding:20px">
-      <h2>Admin Login</h2>
-      <form method="GET" action="/admin">
-        <input name="p" type="password" placeholder="Enter admin password" style="padding:8px;width:100%;margin-bottom:10px;box-sizing:border-box">
-        <button type="submit" style="padding:8px 20px;background:#6d28d9;color:white;border:none;border-radius:4px;cursor:pointer">Login</button>
-      </form>
-    </body></html>`);
-  }
-  const users = db.prepare('SELECT id,name,email,role,created_at FROM users ORDER BY created_at DESC').all();
-  const projects = db.prepare('SELECT id,title,type,status,created_at FROM projects ORDER BY created_at DESC').all();
-  const openProjects = projects.filter(p => p.status === 'open').length;
-  const messages = db.prepare('SELECT COUNT(*) as count FROM messages').get();
-  const events = db.prepare('SELECT COUNT(*) as count FROM events').get();
-  res.send(`<!DOCTYPE html><html><head><title>Kalachautari Admin</title>
-  <style>
-    body{font-family:sans-serif;background:#0f0f0f;color:#eee;padding:20px;max-width:1100px;margin:0 auto}
-    h1{color:#a78bfa}h2{color:#c4b5fd;margin-top:30px}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:20px 0}
-    .stat{background:#1e1e2e;padding:20px;border-radius:8px;text-align:center}
-    .stat .num{font-size:2em;font-weight:bold;color:#a78bfa}
-    .stat .label{color:#888;font-size:0.9em;margin-top:5px}
-    table{width:100%;border-collapse:collapse;background:#1e1e2e;border-radius:8px;overflow:hidden;margin-top:10px}
-    th{background:#2d2d3e;padding:10px;text-align:left;color:#a78bfa;font-size:0.85em}
-    td{padding:10px;border-top:1px solid #2d2d3e;font-size:0.85em;color:#ccc}
-    tr:hover td{background:#252535}
-    .badge{padding:2px 8px;border-radius:10px;font-size:0.75em}
-    .open{background:#14532d;color:#86efac}.closed{background:#1e1b4b;color:#a5b4fc}
-  </style></head><body>
-  <h1>🌿 Kalachautari Admin</h1>
-  <div class="stats">
-    <div class="stat"><div class="num">${users.length}</div><div class="label">Total Users</div></div>
-    <div class="stat"><div class="num">${projects.length}</div><div class="label">Total Projects</div></div>
-    <div class="stat"><div class="num">${openProjects}</div><div class="label">Open Projects</div></div>
-    <div class="stat"><div class="num">${messages.count}</div><div class="label">Messages Sent</div></div>
-  </div>
-  <h2>Users (${users.length})</h2>
-  <table><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr>
-  ${users.map(u=>`<tr><td>${u.name}</td><td>${u.email}</td><td>${u.role||'-'}</td><td>${u.created_at?u.created_at.slice(0,10):'-'}</td></tr>`).join('')}
-  </table>
-  <h2>Projects (${projects.length})</h2>
-  <table><tr><th>Title</th><th>Type</th><th>Status</th><th>Created</th></tr>
-  ${projects.map(p=>`<tr><td>${p.title}</td><td>${p.type||'-'}</td><td><span class="badge ${p.status}">${p.status}</span></td><td>${p.created_at?p.created_at.slice(0,10):'-'}</td></tr>`).join('')}
-  </table>
-  </body></html>`);
+// ─── ADMIN ROUTES ─────────────────────────────────────────────────────────────
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'kalachautari-admin-2025';
+
+function adminAuth(req, res, next) {
+  const key = req.headers['x-admin-key'] || req.query.key;
+  if (key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  next();
+}
+
+// Admin dashboard HTML
+app.get('/admin', adminAuth, (req, res) => {
+  const key = req.query.key || ADMIN_SECRET;
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kalachautari Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&family=Yatra+One&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Mukta',sans-serif;background:#1A0F08;color:#F4ECD8;min-height:100vh}
+nav{background:#0F0804;border-bottom:3px solid #C9922A;padding:0 2rem;height:54px;display:flex;align-items:center;gap:1rem}
+nav h1{font-family:'Yatra One',serif;color:#C9922A;font-size:1.2rem}
+nav span{color:rgba(255,255,255,0.4);font-size:0.75rem}
+.tabs{display:flex;gap:0;background:#140A05;border-bottom:1px solid rgba(255,255,255,0.08);padding:0 2rem}
+.tab{background:none;border:none;color:rgba(255,255,255,0.5);padding:12px 18px;cursor:pointer;font-family:'Mukta',sans-serif;font-size:0.82rem;border-bottom:2px solid transparent;transition:all 0.15s}
+.tab:hover{color:#fff}.tab.act{color:#C9922A;border-bottom-color:#C9922A;font-weight:700}
+.page{display:none;padding:2rem}.page.act{display:block}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{text-align:left;padding:8px 12px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.4);border-bottom:1px solid rgba(255,255,255,0.08)}
+td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:#F4ECD8;vertical-align:top}
+tr:hover td{background:rgba(255,255,255,0.03)}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:700}
+.badge.open{background:#1A4D2A;color:#6FCF97}
+.badge.closed{background:#4A1B0C;color:#F08070}
+.badge.pending{background:#412402;color:#F0B86A}
+.badge.accepted{background:#1A4D2A;color:#6FCF97}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.stat{background:#0F0804;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:1.25rem;text-align:center}
+.stat-n{font-family:'Yatra One',serif;font-size:2rem;color:#C9922A}
+.stat-l{font-size:0.68rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+.sec-title{font-family:'Yatra One',serif;font-size:1.1rem;color:#C9922A;margin-bottom:1rem}
+.search{background:#0F0804;border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:6px 12px;color:#F4ECD8;font-family:'Mukta',sans-serif;font-size:0.82rem;width:280px;margin-bottom:1rem}
+.search:focus{outline:none;border-color:#C9922A}
+.btn{background:#B8432F;color:#fff;border:none;padding:5px 12px;border-radius:3px;cursor:pointer;font-family:'Mukta',sans-serif;font-size:0.75rem;font-weight:700}
+.btn:hover{background:#8C2E1A}
+.btn.del{background:#4A1B0C}.btn.del:hover{background:#7A1A1A}
+.msg-preview{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.6);font-size:0.75rem}
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#C9922A;color:#1A0F08;padding:10px 16px;border-radius:4px;font-size:0.82rem;font-weight:700;opacity:0;transition:opacity 0.3s;z-index:100}
+#toast.show{opacity:1}
+.empty{color:rgba(255,255,255,0.3);font-size:0.85rem;padding:2rem;text-align:center}
+</style>
+</head>
+<body>
+<nav>
+  <h1>कलाचौतारी Admin</h1>
+  <span>Platform Management Panel</span>
+  <span style="margin-left:auto;color:rgba(255,255,255,0.3);font-size:0.7rem">Key: ${key.slice(0,8)}...</span>
+</nav>
+<div class="tabs">
+  <button class="tab act" onclick="showTab('dashboard')">Dashboard</button>
+  <button class="tab" onclick="showTab('users')">Users</button>
+  <button class="tab" onclick="showTab('projects')">Projects</button>
+  <button class="tab" onclick="showTab('interests')">Interests</button>
+  <button class="tab" onclick="showTab('messages')">Messages</button>
+  <button class="tab" onclick="showTab('events')">Events</button>
+</div>
+
+<div id="tab-dashboard" class="page act">
+  <div class="stat-row" id="stats"></div>
+  <div class="sec-title">Recent Signups</div>
+  <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Joined</th></tr></thead>
+  <tbody id="recent-users"></tbody></table>
+</div>
+
+<div id="tab-users" class="page">
+  <input class="search" id="user-search" placeholder="Search users..." oninput="filterTable('users-table', this.value)"/>
+  <table id="users-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Disciplines</th><th>Experience</th><th>Joined</th><th>Actions</th></tr></thead>
+  <tbody id="users-body"></tbody></table>
+</div>
+
+<div id="tab-projects" class="page">
+  <table><thead><tr><th>Title</th><th>Type</th><th>Owner</th><th>Location</th><th>Remote</th><th>Interests</th><th>Status</th><th>Posted</th><th>Actions</th></tr></thead>
+  <tbody id="projects-body"></tbody></table>
+</div>
+
+<div id="tab-interests" class="page">
+  <table><thead><tr><th>Project</th><th>Applicant</th><th>Role Offer</th><th>Message</th><th>Portfolio</th><th>Status</th><th>Date</th></tr></thead>
+  <tbody id="interests-body"></tbody></table>
+</div>
+
+<div id="tab-messages" class="page">
+  <table><thead><tr><th>Conversation</th><th>Type</th><th>Members</th><th>Last Message</th><th>Total Msgs</th><th>Created</th></tr></thead>
+  <tbody id="messages-body"></tbody></table>
+</div>
+
+<div id="tab-events" class="page">
+  <table><thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Creator</th><th>Free?</th><th>RSVPs</th><th>Actions</th></tr></thead>
+  <tbody id="events-body"></tbody></table>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const KEY = '${key}';
+const H = {'x-admin-key': KEY, 'Content-Type': 'application/json'};
+
+function showTab(t) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('act'));
+  document.getElementById('tab-' + t).classList.add('act');
+  event.target.classList.add('act');
+  load(t);
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function fmt(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+}
+
+function filterTable(tableId, q) {
+  document.querySelectorAll('#' + tableId + ' tbody tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+async function load(tab) {
+  if (tab === 'dashboard') await loadDashboard();
+  if (tab === 'users') await loadUsers();
+  if (tab === 'projects') await loadProjects();
+  if (tab === 'interests') await loadInterests();
+  if (tab === 'messages') await loadConvs();
+  if (tab === 'events') await loadEvents();
+}
+
+async function loadDashboard() {
+  const [users, projects, events, interests] = await Promise.all([
+    fetch('/api/admin/users', {headers:H}).then(r=>r.json()),
+    fetch('/api/admin/projects', {headers:H}).then(r=>r.json()),
+    fetch('/api/admin/events', {headers:H}).then(r=>r.json()),
+    fetch('/api/admin/interests', {headers:H}).then(r=>r.json()),
+  ]);
+  document.getElementById('stats').innerHTML = [
+    {n: users.length, l: 'Total Users'},
+    {n: projects.filter(p=>p.status==='open').length, l: 'Open Projects'},
+    {n: interests.filter(i=>i.status==='pending').length, l: 'Pending Interests'},
+    {n: events.length, l: 'Events'},
+  ].map(s => '<div class="stat"><div class="stat-n">' + s.n + '</div><div class="stat-l">' + s.l + '</div></div>').join('');
+  document.getElementById('recent-users').innerHTML = users.slice(0,10).map(u =>
+    '<tr><td>' + u.name + '</td><td style="color:#C9922A">' + u.email + '</td><td>' + (u.role||'—') + '</td><td>' + (u.location||'—') + '</td><td>' + fmt(u.created_at) + '</td></tr>'
+  ).join('') || '<tr><td colspan="5" class="empty">No users yet</td></tr>';
+}
+
+async function loadUsers() {
+  const users = await fetch('/api/admin/users', {headers:H}).then(r=>r.json());
+  document.getElementById('users-body').innerHTML = users.map(u =>
+    '<tr><td><strong>' + u.name + '</strong>' + (u.name_np ? '<br><span style="font-size:0.72rem;color:rgba(255,255,255,0.4)">' + u.name_np + '</span>' : '') + '</td>' +
+    '<td style="color:#C9922A">' + u.email + '</td>' +
+    '<td>' + (u.role||'—') + '</td>' +
+    '<td>' + (u.location||'—') + '</td>' +
+    '<td>' + (JSON.parse(u.disciplines||'[]').join(', ')||'—') + '</td>' +
+    '<td>' + (u.experience_years||0) + ' yrs</td>' +
+    '<td>' + fmt(u.created_at) + '</td>' +
+    '<td><button class="btn del" onclick="deleteUser(\'' + u.id + '\',\'' + u.name + '\')">Delete</button></td></tr>'
+  ).join('') || '<tr><td colspan="8" class="empty">No users</td></tr>';
+}
+
+async function loadProjects() {
+  const projects = await fetch('/api/admin/projects', {headers:H}).then(r=>r.json());
+  document.getElementById('projects-body').innerHTML = projects.map(p =>
+    '<tr><td><strong>' + p.title + '</strong></td>' +
+    '<td>' + p.type + '</td>' +
+    '<td>' + (p.owner_name||'?') + '</td>' +
+    '<td>' + (p.location||'—') + '</td>' +
+    '<td>' + (p.remote_ok ? '✓' : '✗') + '</td>' +
+    '<td>' + (p.interest_count||0) + '</td>' +
+    '<td><span class="badge ' + p.status + '">' + p.status + '</span></td>' +
+    '<td>' + fmt(p.created_at) + '</td>' +
+    '<td><button class="btn del" onclick="closeProject(\'' + p.id + '\')">Close</button></td></tr>'
+  ).join('') || '<tr><td colspan="9" class="empty">No projects</td></tr>';
+}
+
+async function loadInterests() {
+  const interests = await fetch('/api/admin/interests', {headers:H}).then(r=>r.json());
+  document.getElementById('interests-body').innerHTML = interests.map(i =>
+    '<tr><td>' + (i.project_title||'?') + '</td>' +
+    '<td><strong>' + (i.user_name||'?') + '</strong><br><span style="font-size:0.72rem;color:#C9922A">' + (i.user_email||'') + '</span></td>' +
+    '<td>' + (i.role_offer||'—') + '</td>' +
+    '<td class="msg-preview">' + (i.message||'—') + '</td>' +
+    '<td>' + (i.portfolio_link ? '<a href="' + i.portfolio_link + '" target="_blank" style="color:#C9922A">Link</a>' : '—') + '</td>' +
+    '<td><span class="badge ' + i.status + '">' + i.status + '</span></td>' +
+    '<td>' + fmt(i.created_at) + '</td></tr>'
+  ).join('') || '<tr><td colspan="7" class="empty">No interests yet</td></tr>';
+}
+
+async function loadConvs() {
+  const convs = await fetch('/api/admin/conversations', {headers:H}).then(r=>r.json());
+  document.getElementById('messages-body').innerHTML = convs.map(c =>
+    '<tr><td>' + (c.name || (c.type==='direct' ? 'Direct Message' : 'Group')) + '</td>' +
+    '<td>' + c.type + '</td>' +
+    '<td>' + (c.member_count||0) + '</td>' +
+    '<td class="msg-preview">' + (c.last_msg||'—') + '</td>' +
+    '<td>' + (c.msg_count||0) + '</td>' +
+    '<td>' + fmt(c.created_at) + '</td></tr>'
+  ).join('') || '<tr><td colspan="6" class="empty">No conversations</td></tr>';
+}
+
+async function loadEvents() {
+  const events = await fetch('/api/admin/events', {headers:H}).then(r=>r.json());
+  document.getElementById('events-body').innerHTML = events.map(e =>
+    '<tr><td><strong>' + e.title + '</strong></td>' +
+    '<td>' + e.event_date + '</td>' +
+    '<td>' + (e.location||'—') + '</td>' +
+    '<td>' + (e.creator_name||'?') + '</td>' +
+    '<td>' + (e.is_free ? 'Free' : 'Paid') + '</td>' +
+    '<td>' + (e.rsvp_count||0) + '</td>' +
+    '<td><button class="btn del" onclick="deleteEvent(\'' + e.id + '\')">Delete</button></td></tr>'
+  ).join('') || '<tr><td colspan="7" class="empty">No events</td></tr>';
+}
+
+async function deleteUser(id, name) {
+  if (!confirm('Delete user ' + name + '? This cannot be undone.')) return;
+  await fetch('/api/admin/users/' + id, {method:'DELETE', headers:H});
+  toast('User deleted'); loadUsers();
+}
+
+async function closeProject(id) {
+  await fetch('/api/admin/projects/' + id + '/close', {method:'PATCH', headers:H});
+  toast('Project closed'); loadProjects();
+}
+
+async function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  await fetch('/api/admin/events/' + id, {method:'DELETE', headers:H});
+  toast('Event deleted'); loadEvents();
+}
+
+load('dashboard');
+</script>
+</body>
+</html>`);
 });
-```
 
-**Step 4** — Press **Ctrl+S** to save, close Notepad.
+// Admin API routes
+app.get('/api/admin/users', adminAuth, (req, res) => {
+  res.json(db.prepare('SELECT id,name,name_np,email,role,location,disciplines,skills,experience_years,avatar_init,created_at FROM users ORDER BY created_at DESC').all());
+});
 
-**Step 5** — In terminal:
-```
-git add -A
-git commit -m "add admin panel"
-git push
-```
+app.delete('/api/admin/users/:id', adminAuth, (req, res) => {
+  db.prepare('DELETE FROM users WHERE id=?').run(req.params.id);
+  res.json({ ok: true });
+});
 
-After Railway deploys, you can visit:
-```
-https://YOUR-RAILWAY-URL/admin
+app.get('/api/admin/projects', adminAuth, (req, res) => {
+  res.json(db.prepare(`SELECT p.*, u.name as owner_name, (SELECT COUNT(*) FROM interests WHERE project_id=p.id) as interest_count FROM projects p LEFT JOIN users u ON p.owner_id=u.id ORDER BY p.created_at DESC`).all());
+});
+
+app.patch('/api/admin/projects/:id/close', adminAuth, (req, res) => {
+  db.prepare('UPDATE projects SET status=? WHERE id=?').run('closed', req.params.id);
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/interests', adminAuth, (req, res) => {
+  res.json(db.prepare(`SELECT i.*, p.title as project_title, u.name as user_name, u.email as user_email FROM interests i LEFT JOIN projects p ON i.project_id=p.id LEFT JOIN users u ON i.user_id=u.id ORDER BY i.created_at DESC`).all());
+});
+
+app.get('/api/admin/conversations', adminAuth, (req, res) => {
+  res.json(db.prepare(`SELECT c.*, (SELECT COUNT(*) FROM conv_members WHERE conv_id=c.id) as member_count, (SELECT COUNT(*) FROM messages WHERE conv_id=c.id) as msg_count, (SELECT content FROM messages WHERE conv_id=c.id ORDER BY created_at DESC LIMIT 1) as last_msg FROM conversations c ORDER BY c.created_at DESC`).all());
+});
+
+app.get('/api/admin/events', adminAuth, (req, res) => {
+  res.json(db.prepare(`SELECT e.*, u.name as creator_name, (SELECT COUNT(*) FROM rsvps WHERE event_id=e.id) as rsvp_count FROM events e LEFT JOIN users u ON e.creator_id=u.id ORDER BY e.event_date ASC`).all());
+});
+
+app.delete('/api/admin/events/:id', adminAuth, (req, res) => {
+  db.prepare('DELETE FROM events WHERE id=?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+// fallback to index.html for SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/public/index.html'));
 });
