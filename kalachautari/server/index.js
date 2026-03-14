@@ -600,6 +600,70 @@ wss.on('connection', (ws, req) => {
 });
 
 // fallback to index.html for SPA
+// --- ADMIN PANEL ---
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'kalachautari-admin-2025';
+app.get('/admin', (req, res) => {
+  const p = req.query.p;
+  if (p !== ADMIN_PASSWORD) {
+    return res.send(`<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:400px;margin:100px auto;padding:20px">
+      <h2>Admin Login</h2>
+      <form method="GET" action="/admin">
+        <input name="p" type="password" placeholder="Enter admin password" style="padding:8px;width:100%;margin-bottom:10px;box-sizing:border-box">
+        <button type="submit" style="padding:8px 20px;background:#6d28d9;color:white;border:none;border-radius:4px;cursor:pointer">Login</button>
+      </form>
+    </body></html>`);
+  }
+  const users = db.prepare('SELECT id,name,email,role,created_at FROM users ORDER BY created_at DESC').all();
+  const projects = db.prepare('SELECT id,title,type,status,created_at FROM projects ORDER BY created_at DESC').all();
+  const openProjects = projects.filter(p => p.status === 'open').length;
+  const messages = db.prepare('SELECT COUNT(*) as count FROM messages').get();
+  const events = db.prepare('SELECT COUNT(*) as count FROM events').get();
+  res.send(`<!DOCTYPE html><html><head><title>Kalachautari Admin</title>
+  <style>
+    body{font-family:sans-serif;background:#0f0f0f;color:#eee;padding:20px;max-width:1100px;margin:0 auto}
+    h1{color:#a78bfa}h2{color:#c4b5fd;margin-top:30px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:20px 0}
+    .stat{background:#1e1e2e;padding:20px;border-radius:8px;text-align:center}
+    .stat .num{font-size:2em;font-weight:bold;color:#a78bfa}
+    .stat .label{color:#888;font-size:0.9em;margin-top:5px}
+    table{width:100%;border-collapse:collapse;background:#1e1e2e;border-radius:8px;overflow:hidden;margin-top:10px}
+    th{background:#2d2d3e;padding:10px;text-align:left;color:#a78bfa;font-size:0.85em}
+    td{padding:10px;border-top:1px solid #2d2d3e;font-size:0.85em;color:#ccc}
+    tr:hover td{background:#252535}
+    .badge{padding:2px 8px;border-radius:10px;font-size:0.75em}
+    .open{background:#14532d;color:#86efac}.closed{background:#1e1b4b;color:#a5b4fc}
+  </style></head><body>
+  <h1>🌿 Kalachautari Admin</h1>
+  <div class="stats">
+    <div class="stat"><div class="num">${users.length}</div><div class="label">Total Users</div></div>
+    <div class="stat"><div class="num">${projects.length}</div><div class="label">Total Projects</div></div>
+    <div class="stat"><div class="num">${openProjects}</div><div class="label">Open Projects</div></div>
+    <div class="stat"><div class="num">${messages.count}</div><div class="label">Messages Sent</div></div>
+  </div>
+  <h2>Users (${users.length})</h2>
+  <table><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr>
+  ${users.map(u=>`<tr><td>${u.name}</td><td>${u.email}</td><td>${u.role||'-'}</td><td>${u.created_at?u.created_at.slice(0,10):'-'}</td></tr>`).join('')}
+  </table>
+  <h2>Projects (${projects.length})</h2>
+  <table><tr><th>Title</th><th>Type</th><th>Status</th><th>Created</th></tr>
+  ${projects.map(p=>`<tr><td>${p.title}</td><td>${p.type||'-'}</td><td><span class="badge ${p.status}">${p.status}</span></td><td>${p.created_at?p.created_at.slice(0,10):'-'}</td></tr>`).join('')}
+  </table>
+  </body></html>`);
+});
+```
+
+**Step 4** — Press **Ctrl+S** to save, close Notepad.
+
+**Step 5** — In terminal:
+```
+git add -A
+git commit -m "add admin panel"
+git push
+```
+
+After Railway deploys, you can visit:
+```
+https://YOUR-RAILWAY-URL/admin
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/public/index.html'));
 });
