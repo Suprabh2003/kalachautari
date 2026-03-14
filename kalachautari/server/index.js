@@ -24,7 +24,7 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // ─── Database setup ───────────────────────────────────────────────────────────
-const db = new DatabaseSync(DB_PATH, { verbose: false });
+const db = new DatabaseSync(DB_PATH);
 
 db.exec(`
 PRAGMA journal_mode=WAL;
