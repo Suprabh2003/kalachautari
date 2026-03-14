@@ -602,7 +602,7 @@ wss.on('connection', (ws, req) => {
 // fallback to index.html for SPA
 // --- ADMIN PANEL ---
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'kalachautari-admin-2025';
-app.get('/admin', (req, res) => {
+app.get('/secret-admin', (req, res) => {
   const p = req.query.p;
   if (p !== ADMIN_PASSWORD) {
     return res.send(`<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:400px;margin:100px auto;padding:20px">
