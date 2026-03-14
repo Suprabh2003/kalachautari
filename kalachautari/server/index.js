@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-sqlite
+#!/usr/bin/env node
 'use strict';
 
 const express    = require('express');
@@ -13,7 +13,7 @@ const { v4: uuid } = require('uuid');
 const fs         = require('fs');
 
 // ─── Node 22 built-in SQLite ──────────────────────────────────────────────────
-const { DatabaseSync } = require('node:sqlite');
+const DatabaseSync = require('better-sqlite3');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'kalachautari-secret-2025';
 const PORT       = process.env.PORT || 3000;
@@ -24,7 +24,7 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // ─── Database setup ───────────────────────────────────────────────────────────
-const db = new DatabaseSync(DB_PATH);
+const db = new DatabaseSync(DB_PATH, { verbose: false });
 
 db.exec(`
 PRAGMA journal_mode=WAL;
