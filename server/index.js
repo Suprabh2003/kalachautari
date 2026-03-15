@@ -132,7 +132,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(UPLOAD_DIR));
-app.use(express.static(path.join(__dirname, '../client/public')));
+const possiblePublic = [
+  path.join(__dirname, '../client/public'),
+  path.join(__dirname, 'client/public'),
+  path.join(process.cwd(), 'client/public'),
+  path.join(process.cwd(), 'kalachautari/client/public'),
+];
+const publicDir = possiblePublic.find(p => { try { return fs.existsSync(p); } catch(e) { return false; } }) || possiblePublic[0];
+console.log('Static files from:', publicDir, '| exists:', fs.existsSync(publicDir));
+app.use(express.static(publicDir));
 const upload = multer({ dest: UPLOAD_DIR, limits: { fileSize: 100 * 1024 * 1024 } });
 const wsClients = new Map();
 
@@ -455,7 +463,7 @@ app.delete('/api/admin/events/:id',adminAuth, (req,res)=>{ db.run2('DELETE FROM 
 
 // ─── Fallback SPA ─────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/public/index.html'));
+  res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
