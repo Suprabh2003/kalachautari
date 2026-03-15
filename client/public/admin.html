@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kalachautari Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&family=Yatra+One&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Mukta',sans-serif;background:#120A04;color:#F4ECD8;min-height:100vh}
+nav{background:#0A0602;border-bottom:2px solid #C9922A;padding:0 2rem;height:56px;display:flex;align-items:center;gap:12px}
+nav h1{font-family:'Yatra One',serif;color:#C9922A;font-size:1.25rem;margin-right:8px}
+nav span{color:rgba(255,255,255,0.35);font-size:0.75rem}
+.tabs{display:flex;background:#0F0804;border-bottom:1px solid rgba(255,255,255,0.07);padding:0 2rem;overflow-x:auto}
+.tab{background:none;border:none;color:rgba(255,255,255,0.45);padding:13px 20px;cursor:pointer;font-family:'Mukta',sans-serif;font-size:0.83rem;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s}
+.tab:hover{color:rgba(255,255,255,0.8)}
+.tab.act{color:#C9922A;border-bottom-color:#C9922A;font-weight:700}
+.pg{display:none;padding:2rem}
+.pg.act{display:block}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+.stat{background:#1A0E06;border:1px solid rgba(201,146,42,0.2);border-radius:8px;padding:1.25rem;text-align:center}
+.stat-n{font-family:'Yatra One',serif;font-size:2.2rem;color:#C9922A;line-height:1}
+.stat-l{font-size:0.65rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:5px}
+.sec{font-family:'Yatra One',serif;font-size:1.1rem;color:#C9922A;margin-bottom:1rem}
+.srch{background:#1A0E06;border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:7px 12px;color:#F4ECD8;font-family:'Mukta',sans-serif;font-size:0.82rem;width:300px;margin-bottom:1rem}
+.srch:focus{outline:none;border-color:#C9922A}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{text-align:left;padding:9px 12px;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:0.67rem;font-weight:700}
+.open{background:#1A4D2A;color:#6FCF97}
+.pending{background:#412402;color:#F0B86A}
+.accepted{background:#1A4D2A;color:#6FCF97}
+.closed,.declined{background:#4A1B0C;color:#F08070}
+.btn{background:#B8432F;color:#fff;border:none;padding:4px 11px;border-radius:3px;cursor:pointer;font-size:0.72rem;font-weight:700;font-family:'Mukta',sans-serif}
+.btn:hover{background:#8C2E1A}
+.btn.d{background:rgba(180,40,40,0.25);color:#F08070;border:1px solid rgba(180,40,40,0.3)}
+.btn.d:hover{background:#7A1A1A;color:#fff}
+.prev{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.5);font-size:0.75rem}
+.email{color:#C9922A}
+.empty{color:rgba(255,255,255,0.25);padding:2rem;text-align:center;font-size:0.85rem}
+.err{color:#F08070;padding:0.875rem 1rem;font-size:0.82rem;background:rgba(180,40,40,0.1);border-radius:4px;margin-bottom:1rem;border:1px solid rgba(180,40,40,0.2)}
+.loading{color:rgba(255,255,255,0.3);padding:2rem;text-align:center}
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#C9922A;color:#1A0F08;padding:10px 16px;border-radius:5px;font-size:0.82rem;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<nav>
+  <h1>कलाचौतारी Admin</h1>
+  <span>Platform Management Dashboard</span>
+  <span id="nav-key" style="margin-left:auto;font-size:0.7rem;opacity:0.3"></span>
+</nav>
+<div class="tabs">
+  <button class="tab act" data-tab="dashboard" onclick="showTab('dashboard')">Dashboard</button>
+  <button class="tab" data-tab="users" onclick="showTab('users')">Users</button>
+  <button class="tab" data-tab="projects" onclick="showTab('projects')">Projects</button>
+  <button class="tab" data-tab="interests" onclick="showTab('interests')">Interests</button>
+  <button class="tab" data-tab="messages" onclick="showTab('messages')">Messages</button>
+  <button class="tab" data-tab="events" onclick="showTab('events')">Events</button>
+</div>
+
+<div id="pg-dashboard" class="pg act">
+  <div id="err-dashboard"></div>
+  <div class="stat-row" id="stats">
+    <div class="stat"><div class="stat-n">—</div><div class="stat-l">Loading</div></div>
+  </div>
+  <div class="sec">Recent Signups</div>
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Joined</th></tr></thead>
+    <tbody id="tb-recent"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="pg-users" class="pg">
+  <div id="err-users"></div>
+  <input class="srch" id="srch-users" placeholder="Search by name, email, role..." oninput="filterTable('tb-users', this.value)"/>
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Disciplines</th><th>Exp</th><th>Joined</th><th></th></tr></thead>
+    <tbody id="tb-users"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="pg-projects" class="pg">
+  <div id="err-projects"></div>
+  <table>
+    <thead><tr><th>Title</th><th>Type</th><th>Owner</th><th>Location</th><th>Remote</th><th>Interests</th><th>Status</th><th>Posted</th><th></th></tr></thead>
+    <tbody id="tb-projects"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="pg-interests" class="pg">
+  <div id="err-interests"></div>
+  <table>
+    <thead><tr><th>Project</th><th>Applicant</th><th>Email</th><th>Role Offer</th><th>Message</th><th>Portfolio</th><th>Status</th><th>Date</th></tr></thead>
+    <tbody id="tb-interests"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="pg-messages" class="pg">
+  <div id="err-messages"></div>
+  <table>
+    <thead><tr><th>Conversation</th><th>Type</th><th>Members</th><th>Last Message</th><th>Total</th><th>Created</th></tr></thead>
+    <tbody id="tb-messages"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="pg-events" class="pg">
+  <div id="err-events"></div>
+  <table>
+    <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Creator</th><th>Free?</th><th>RSVPs</th><th></th></tr></thead>
+    <tbody id="tb-events"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// Get admin key from URL
+var KEY = new URLSearchParams(window.location.search).get('key') || '';
+document.getElementById('nav-key').textContent = 'key: ' + KEY.slice(0,8) + '...';
+
+var H = { 'x-admin-key': KEY, 'Content-Type': 'application/json' };
+
+function fmt(d) {
+  if (!d) return '—';
+  var dt = new Date(d);
+  return dt.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) +
+         ' ' + dt.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+}
+
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+function showErr(tab, msg) {
+  var el = document.getElementById('err-' + tab);
+  if (el) el.innerHTML = '<div class="err">Error: ' + msg + '</div>';
+}
+
+function filterTable(tbId, q) {
+  var rows = document.querySelectorAll('#' + tbId + ' tr');
+  rows.forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().indexOf(q.toLowerCase()) > -1 ? '' : 'none';
+  });
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('act'); });
+  document.querySelectorAll('.pg').forEach(function(p) { p.classList.remove('act'); });
+  document.querySelector('[data-tab="' + name + '"]').classList.add('act');
+  document.getElementById('pg-' + name).classList.add('act');
+  loadTab(name);
+}
+
+function apiFetch(path) {
+  return fetch(path, { headers: H }).then(function(r) {
+    if (!r.ok) return r.text().then(function(t) { throw new Error('HTTP ' + r.status + ': ' + t.slice(0,100)); });
+    return r.json();
+  }).then(function(data) {
+    if (!Array.isArray(data)) throw new Error('Got: ' + JSON.stringify(data).slice(0,100));
+    return data;
+  });
+}
+
+function loadTab(name) {
+  var fns = {
+    dashboard: loadDashboard,
+    users: loadUsers,
+    projects: loadProjects,
+    interests: loadInterests,
+    messages: loadMessages,
+    events: loadEvents
+  };
+  if (fns[name]) {
+    fns[name]().catch(function(e) {
+      showErr(name, e.message);
+      console.error(name, e);
+    });
+  }
+}
+
+function loadDashboard() {
+  return Promise.all([
+    apiFetch('/api/admin/users'),
+    apiFetch('/api/admin/projects'),
+    apiFetch('/api/admin/events'),
+    apiFetch('/api/admin/interests')
+  ]).then(function(results) {
+    var users = results[0], projects = results[1], events = results[2], interests = results[3];
+    var week = new Date(Date.now() - 7 * 86400000);
+    var newUsers = users.filter(function(u) { return new Date(u.created_at) > week; }).length;
+    var stats = [
+      { n: users.length,    l: 'Total Users' },
+      { n: newUsers,        l: 'New This Week' },
+      { n: projects.filter(function(p) { return p.status === 'open'; }).length, l: 'Open Projects' },
+      { n: interests.filter(function(i) { return i.status === 'pending'; }).length, l: 'Pending Interests' },
+      { n: interests.filter(function(i) { return i.status === 'accepted'; }).length, l: 'Collabs Started' },
+      { n: events.length,   l: 'Events' }
+    ];
+    document.getElementById('stats').innerHTML = stats.map(function(s) {
+      return '<div class="stat"><div class="stat-n">' + s.n + '</div><div class="stat-l">' + s.l + '</div></div>';
+    }).join('');
+    document.getElementById('tb-recent').innerHTML = users.length ? users.slice(0, 15).map(function(u) {
+      return '<tr><td><strong>' + u.name + '</strong></td><td class="email">' + u.email + '</td><td>' +
+        (u.role || '—') + '</td><td>' + (u.location || '—') + '</td><td>' + fmt(u.created_at) + '</td></tr>';
+    }).join('') : '<tr><td colspan="5" class="empty">No users yet</td></tr>';
+  });
+}
+
+function loadUsers() {
+  return apiFetch('/api/admin/users').then(function(users) {
+    document.getElementById('tb-users').innerHTML = users.length ? users.map(function(u) {
+      var disc = Array.isArray(u.disciplines) ? u.disciplines.join(', ') : (u.disciplines || '—');
+      return '<tr>' +
+        '<td><strong>' + u.name + '</strong>' + (u.name_np ? '<br><small style="opacity:0.45">' + u.name_np + '</small>' : '') + '</td>' +
+        '<td class="email">' + u.email + '</td>' +
+        '<td>' + (u.role || '—') + '</td>' +
+        '<td>' + (u.location || '—') + '</td>' +
+        '<td>' + disc + '</td>' +
+        '<td>' + (u.experience_years || 0) + ' yrs</td>' +
+        '<td>' + fmt(u.created_at) + '</td>' +
+        '<td><button class="btn d" onclick="deleteUser(\'' + u.id + '\', \'' + u.name.replace(/'/g, '') + '\')">Delete</button></td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="8" class="empty">No users yet</td></tr>';
+  });
+}
+
+function loadProjects() {
+  return apiFetch('/api/admin/projects').then(function(projects) {
+    document.getElementById('tb-projects').innerHTML = projects.length ? projects.map(function(p) {
+      return '<tr>' +
+        '<td><strong>' + p.title + '</strong></td>' +
+        '<td>' + p.type + '</td>' +
+        '<td>' + (p.owner_name || '?') + '</td>' +
+        '<td>' + (p.location || '—') + '</td>' +
+        '<td>' + (p.remote_ok ? '✓' : '✗') + '</td>' +
+        '<td>' + (p.interest_count || 0) + '</td>' +
+        '<td><span class="badge ' + p.status + '">' + p.status + '</span></td>' +
+        '<td>' + fmt(p.created_at) + '</td>' +
+        '<td><button class="btn d" onclick="closeProject(\'' + p.id + '\')">Close</button></td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="9" class="empty">No projects yet</td></tr>';
+  });
+}
+
+function loadInterests() {
+  return apiFetch('/api/admin/interests').then(function(interests) {
+    document.getElementById('tb-interests').innerHTML = interests.length ? interests.map(function(i) {
+      var portLink = i.portfolio_link ? '<a href="' + i.portfolio_link + '" target="_blank" style="color:#C9922A">Link</a>' : '—';
+      return '<tr>' +
+        '<td>' + (i.project_title || '?') + '</td>' +
+        '<td><strong>' + (i.user_name || '?') + '</strong></td>' +
+        '<td class="email">' + (i.user_email || '—') + '</td>' +
+        '<td>' + (i.role_offer || '—') + '</td>' +
+        '<td class="prev">' + (i.message || '—') + '</td>' +
+        '<td>' + portLink + '</td>' +
+        '<td><span class="badge ' + (i.status || 'pending') + '">' + (i.status || 'pending') + '</span></td>' +
+        '<td>' + fmt(i.created_at) + '</td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="8" class="empty">No interests yet</td></tr>';
+  });
+}
+
+function loadMessages() {
+  return apiFetch('/api/admin/conversations').then(function(convs) {
+    document.getElementById('tb-messages').innerHTML = convs.length ? convs.map(function(c) {
+      return '<tr>' +
+        '<td>' + (c.name || (c.type === 'direct' ? 'Direct Message' : 'Group')) + '</td>' +
+        '<td>' + c.type + '</td>' +
+        '<td>' + (c.member_count || 0) + '</td>' +
+        '<td class="prev">' + (c.last_msg || '—') + '</td>' +
+        '<td>' + (c.msg_count || 0) + '</td>' +
+        '<td>' + fmt(c.created_at) + '</td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">No conversations yet</td></tr>';
+  });
+}
+
+function loadEvents() {
+  return apiFetch('/api/admin/events').then(function(events) {
+    document.getElementById('tb-events').innerHTML = events.length ? events.map(function(e) {
+      return '<tr>' +
+        '<td><strong>' + e.title + '</strong></td>' +
+        '<td>' + e.event_date + '</td>' +
+        '<td>' + (e.location || '—') + '</td>' +
+        '<td>' + (e.creator_name || '?') + '</td>' +
+        '<td>' + (e.is_free ? '<span class="badge open">Free</span>' : '<span class="badge pending">Paid</span>') + '</td>' +
+        '<td>' + (e.rsvp_count || 0) + '</td>' +
+        '<td><button class="btn d" onclick="deleteEvent(\'' + e.id + '\')">Delete</button></td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="7" class="empty">No events yet</td></tr>';
+  });
+}
+
+function deleteUser(id, name) {
+  if (!confirm('Delete user "' + name + '"? Cannot be undone.')) return;
+  fetch('/api/admin/users/' + id, { method: 'DELETE', headers: H })
+    .then(function() { toast('User deleted'); loadUsers(); loadDashboard(); });
+}
+
+function closeProject(id) {
+  fetch('/api/admin/projects/' + id + '/close', { method: 'PATCH', headers: H })
+    .then(function() { toast('Project closed'); loadProjects(); });
+}
+
+function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  fetch('/api/admin/events/' + id, { method: 'DELETE', headers: H })
+    .then(function() { toast('Event deleted'); loadEvents(); });
+}
+
+// Start
+loadDashboard().catch(function(e) { showErr('dashboard', e.message); });
+</script>
+</body>
+</html>
