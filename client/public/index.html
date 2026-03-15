@@ -443,7 +443,7 @@ textarea.finp{resize:none}
         <div class="logo-sub">Nepali Creative Hub</div>
       </div>
     </a>
-    <button class="nav-btn" data-p="projects"><span class="en-t">Projects</span><span class="np-t np">परियोजना</span></button>
+    <button class="nav-btn act" data-p="projects"><span class="en-t">Projects</span><span class="np-t np">परियोजना</span></button>
     <button class="nav-btn" data-p="discover"><span class="en-t">Creatives</span><span class="np-t np">कलाकार</span></button>
     <button class="nav-btn" data-p="match"><span class="en-t">Match</span><span class="np-t np">मेल</span></button>
     <button class="nav-btn" data-p="forum"><span class="en-t">Forum</span><span class="np-t np">मञ्च</span></button>
@@ -460,7 +460,7 @@ textarea.finp{resize:none}
   </div>
 
   <!-- PROJECTS PAGE -->
-  <div id="p-projects" class="page">
+  <div id="p-projects" class="page act">
     <div class="hero dhaka">
       <div class="hero-bg-lines"></div>
       <div class="hero-mandala-wrap">
@@ -875,7 +875,9 @@ function loginSuccess(token,user){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
   updateNavAv();
-  connectWS();loadStats();loadProjects();loadNotifCount();
+  connectWS();loadStats();loadNotifCount();
+  // Always land on Projects page
+  goPage('projects');
   setTimeout(initReveal,200);
 }
 function doLogout(){localStorage.removeItem('kc_token');localStorage.removeItem('kc_user');if(S.ws)S.ws.close();location.reload();}
@@ -909,7 +911,7 @@ function goPage(p){
   document.querySelectorAll('.nav-btn[data-p]').forEach(b=>b.classList.remove('act'));
   const pg=document.getElementById('p-'+p);if(pg)pg.classList.add('act');
   const nb=document.querySelector(`.nav-btn[data-p="${p}"]`);if(nb)nb.classList.add('act');
-  if(p==='projects')loadProjects();if(p==='discover')loadCreators();
+  if(p==='projects'){loadProjects();loadStats();}if(p==='discover')loadCreators();
   if(p==='events')loadEvents();if(p==='messages')loadConversations();
   if(p==='notifs')loadNotifications();if(p==='profile')loadProfile();
   if(p==='match')loadMatchCandidates();if(p==='forum')renderForum();
