@@ -777,6 +777,15 @@ const S={
 
 const API=window.location.origin;
 
+// PostgreSQL returns arrays natively, SQLite returns JSON strings
+// This helper handles both cases safely
+function parseArr(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  try { return JSON.parse(val); } catch(e) { return []; }
+}
+
+
 // ── CANVAS ─────────────────────────────────────────────────────────────────
 (function initCanvas(){
   const c=document.getElementById('fc');
@@ -952,7 +961,7 @@ async function loadProjects(){
         <div class="pc-desc">${(p.description||'').slice(0,150)}${(p.description||'').length>150?'…':''}</div>
         <div style="margin-bottom:5px">
           <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);margin-bottom:4px">Looking for</div>
-          ${JSON.parse(p.roles_needed||'[]').map(r=>`<span class="need">${r}</span>`).join('')}
+          ${parseArr(p.roles_needed).map(r=>`<span class="need">${r}</span>`).join('')}
         </div>
       </div>
       <div class="pc-foot">
@@ -1038,7 +1047,7 @@ async function loadCreators(){
         <div class="cc-name">${u.name}</div>
         <div class="cc-role">${u.role||''}</div>
         <div class="cc-bio">${(u.bio||'').slice(0,90)}${(u.bio||'').length>90?'…':''}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${JSON.parse(u.skills||'[]').slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${parseArr(u.skills).slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}</div>
         <div class="cc-foot">
           <span class="cc-loc">${u.location||'—'} · ${u.experience_years||0}yr</span>
           ${u.id!==S.user?.id?`<button class="btn-p" style="padding:4px 13px;font-size:0.72rem" onclick="startDMWith('${u.id}','${esc(u.name)}')">Connect</button>`:`<span class="tag green">You</span>`}
@@ -1238,7 +1247,7 @@ async function loadEvents(){
         <div class="ev-title">${e.title}</div>
         <div class="ev-meta">${e.location}${e.event_time?' · '+e.event_time:''}${e.is_online?' · Online':''}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
-          ${JSON.parse(e.tags||'[]').map(t=>`<span class="tag">${t}</span>`).join('')}
+          ${parseArr(e.tags).map(t=>`<span class="tag">${t}</span>`).join('')}
           ${e.is_free?'<span class="tag green">Free</span>':'<span class="tag gold">Ticketed</span>'}
         </div>
         <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">${e.rsvp_count||0} attending · By ${e.creator_name||'Kalachautari'}</div>
@@ -1252,7 +1261,7 @@ async function loadEvents(){
   setTimeout(initReveal,50);
 }
 function showRSVP(eid,title,loc,date,ts){
-  const tiers=JSON.parse(ts.replace(/&quot;/g,'"'));
+  const tiers = Array.isArray(ts) ? ts : JSON.parse(ts.replace(/&quot;/g,'"'));
   showModal(`<div class="modal-hd"><h3>${title}</h3><p>${loc} · ${date}</p></div>
     <div class="modal-body">
       <div class="flbl" style="margin-bottom:8px">Select Ticket</div>
@@ -1383,7 +1392,7 @@ function renderSwipeCards(){
         <div class="sw-role">${c.role||''}</div>
         <div class="match-score"><strong>${c.match_score}% match</strong> — based on genre & discipline</div>
         <div style="font-size:0.8rem;color:var(--muted);line-height:1.45;margin-bottom:8px">${(c.bio||'').slice(0,100)}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${JSON.parse(c.skills||'[]').slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${parseArr(c.skills).slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}</div>
         <div style="font-size:0.7rem;color:var(--muted2)">${c.location||'—'} · ${c.experience_years||0} yrs${c.open_to_remote?' · Remote OK':''}</div>
       </div>
     </div>`).join('');
@@ -1453,8 +1462,8 @@ async function loadProfile(){
   const banner=document.getElementById('prof-banner');
   if(savedBanner&&banner){banner.style.background='none';banner.style.backgroundImage=`url(${savedBanner})`;banner.style.backgroundSize='cover';banner.style.backgroundPosition='center';}
   else if(banner){banner.className='prof-banner '+(user.avatar_color||'rust');}
-  document.getElementById('prof-skills').innerHTML=JSON.parse(user.skills||'[]').map(s=>`<div class="sk-bar"><div class="sk-n"><span>${s}</span></div><div class="sk-track"><div class="sk-fill" style="width:${70+Math.floor(Math.random()*25)}%"></div></div></div>`).join('');
-  document.getElementById('prof-genres').innerHTML=JSON.parse(user.genres||'[]').map(g=>`<span class="tag rust">${g}</span>`).join('');
+  document.getElementById('prof-skills').innerHTML=parseArr(user.skills).map(s=>`<div class="sk-bar"><div class="sk-n"><span>${s}</span></div><div class="sk-track"><div class="sk-fill" style="width:${70+Math.floor(Math.random()*25)}%"></div></div></div>`).join('');
+  document.getElementById('prof-genres').innerHTML=parseArr(user.genres).map(g=>`<span class="tag rust">${g}</span>`).join('');
   document.getElementById('my-projects-list').innerHTML=(user.projects||[]).map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--card);border:1.5px solid var(--border);border-radius:7px">
     <div style="flex:1"><div style="font-size:0.83rem;font-weight:700">${p.title}</div><div style="font-size:0.7rem;color:var(--muted)">${p.type}</div></div>
     <span class="tag ${p.status==='open'?'green':''}">${p.status}</span>
@@ -1474,8 +1483,8 @@ function showEditProfile(){
       <div class="fgrp"><label class="flbl">Bio</label><textarea class="finp" id="ep-bio" style="height:80px">${u.bio||''}</textarea></div>
       <div class="fgrp"><label class="flbl">Location</label><input class="finp" id="ep-loc" value="${u.location||''}"/></div>
       <div class="fgrp"><label class="flbl">Years Experience</label><input class="finp" type="number" id="ep-exp" value="${u.experience_years||0}" min="0" max="50" style="width:80px"/></div>
-      <div class="fgrp"><label class="flbl">Skills (comma separated)</label><input class="finp" id="ep-skills" value="${JSON.parse(u.skills||'[]').join(', ')}"/></div>
-      <div class="fgrp"><label class="flbl">Genres (comma separated)</label><input class="finp" id="ep-genres" value="${JSON.parse(u.genres||'[]').join(', ')}"/></div>
+      <div class="fgrp"><label class="flbl">Skills (comma separated)</label><input class="finp" id="ep-skills" value="${parseArr(u.skills).join(', ')}"/></div>
+      <div class="fgrp"><label class="flbl">Genres (comma separated)</label><input class="finp" id="ep-genres" value="${parseArr(u.genres).join(', ')}"/></div>
     </div>
     <div class="modal-foot"><button class="btn-o" onclick="closeOverlay()">Cancel</button><button class="btn-p" onclick="saveProfile()">Save Changes</button></div>`);
 }
