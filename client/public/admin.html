@@ -47,6 +47,26 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 </style>
 </head>
 <body>
+
+<div id="login-screen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:#120A04">
+  <div style="background:#1A0E06;border:1px solid rgba(201,146,42,0.3);border-radius:10px;padding:2.5rem;width:340px;text-align:center">
+    <div style="font-family:Yatra One,serif;font-size:2rem;color:#C9922A;margin-bottom:0.5rem">कलाचौतारी</div>
+    <div style="font-size:0.7rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:2px;margin-bottom:2rem">Admin Access</div>
+    <div id="login-err" style="color:#F08070;font-size:0.8rem;margin-bottom:0.875rem;min-height:18px"></div>
+    <input id="admin-password" type="password" placeholder="Enter admin password"
+      style="width:100%;background:#0A0602;border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:10px 14px;color:#F4ECD8;font-family:Mukta,sans-serif;font-size:0.87rem;margin-bottom:1rem;box-sizing:border-box"
+      onkeydown="if(event.key==='Enter')checkPassword()"
+      onfocus="this.style.borderColor='#C9922A'"
+      onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+    />
+    <button onclick="checkPassword()"
+      style="width:100%;background:#B8432F;color:#fff;border:none;padding:10px;border-radius:5px;font-family:Mukta,sans-serif;font-size:0.87rem;font-weight:700;cursor:pointer">
+      Enter Dashboard
+    </button>
+  </div>
+</div>
+
+<div id="main-app" style="display:none">
 <nav>
   <h1>कलाचौतारी Admin</h1>
   <span>Platform Management Dashboard</span>
@@ -117,6 +137,22 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 <div id="toast"></div>
 
 <script>
+// Admin password check
+var ADMIN_PASSWORD = 'kalachautari-admin-2025';
+
+function checkPassword() {
+  var input = document.getElementById('admin-password').value;
+  if (input === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    loadDashboard().catch(function(e) { showErr('dashboard', e.message); });
+  } else {
+    document.getElementById('login-err').textContent = 'Incorrect password. Try again.';
+    document.getElementById('admin-password').value = '';
+    document.getElementById('admin-password').focus();
+  }
+}
+
 // Get admin key from URL
 var KEY = new URLSearchParams(window.location.search).get('key') || '';
 document.getElementById('nav-key').textContent = 'key: ' + KEY.slice(0,8) + '...';
@@ -314,8 +350,8 @@ function deleteEvent(id) {
     .then(function() { toast('Event deleted'); loadEvents(); });
 }
 
-// Start
-loadDashboard().catch(function(e) { showErr('dashboard', e.message); });
+// Dashboard loads after password check
 </script>
+</div>
 </body>
 </html>
