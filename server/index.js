@@ -474,72 +474,308 @@ app.post('/api/upload', auth, upload.single('file'), (req, res) => {
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
 app.get('/admin', adminAuth, (req, res) => {
   const key = req.query.key || ADMIN_SECRET;
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Kalachautari Admin</title>
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kalachautari Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&family=Yatra+One&display=swap" rel="stylesheet"/>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Mukta',sans-serif;background:#1A0F08;color:#F4ECD8}nav{background:#0F0804;border-bottom:3px solid #C9922A;padding:0 2rem;height:54px;display:flex;align-items:center;gap:1rem}nav h1{font-family:'Yatra One',serif;color:#C9922A;font-size:1.2rem}.tabs{display:flex;background:#140A05;border-bottom:1px solid rgba(255,255,255,0.08);padding:0 2rem}.tab{background:none;border:none;color:rgba(255,255,255,0.5);padding:12px 18px;cursor:pointer;font-family:'Mukta',sans-serif;font-size:0.82rem;border-bottom:2px solid transparent}.tab.act{color:#C9922A;border-bottom-color:#C9922A;font-weight:700}.pg{display:none;padding:2rem}.pg.act{display:block}table{width:100%;border-collapse:collapse;font-size:0.82rem}th{text-align:left;padding:8px 12px;font-size:0.68rem;text-transform:uppercase;color:rgba(255,255,255,0.4);border-bottom:1px solid rgba(255,255,255,0.08)}td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);vertical-align:top}tr:hover td{background:rgba(255,255,255,0.03)}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:700}.open{background:#1A4D2A;color:#6FCF97}.pending{background:#412402;color:#F0B86A}.accepted{background:#1A4D2A;color:#6FCF97}.closed{background:#4A1B0C;color:#F08070}.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}.stat{background:#0F0804;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:1.25rem;text-align:center}.stat-n{font-family:'Yatra One',serif;font-size:2rem;color:#C9922A}.stat-l{font-size:0.68rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:3px}.sec{font-family:'Yatra One',serif;font-size:1.1rem;color:#C9922A;margin-bottom:1rem}input.srch{background:#0F0804;border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:6px 12px;color:#F4ECD8;font-family:'Mukta',sans-serif;font-size:0.82rem;width:280px;margin-bottom:1rem}.btn{background:#B8432F;color:#fff;border:none;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:0.72rem;font-weight:700}.btn.d{background:#4A1B0C}.prev{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.55);font-size:0.75rem}#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#C9922A;color:#1A0F08;padding:10px 16px;border-radius:4px;font-size:0.82rem;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none}#toast.show{opacity:1}</style></head><body>
-<nav><h1>कलाचौतारी Admin</h1><span style="color:rgba(255,255,255,0.4);font-size:0.75rem">Platform Management</span></nav>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Mukta',sans-serif;background:#120A04;color:#F4ECD8;min-height:100vh}
+nav{background:#0A0602;border-bottom:2px solid #C9922A;padding:0 2rem;height:56px;display:flex;align-items:center;gap:12px}
+nav h1{font-family:'Yatra One',serif;color:#C9922A;font-size:1.25rem;margin-right:8px}
+nav span{color:rgba(255,255,255,0.35);font-size:0.75rem}
+.tabs{display:flex;background:#0F0804;border-bottom:1px solid rgba(255,255,255,0.07);padding:0 2rem;overflow-x:auto}
+.tab{background:none;border:none;color:rgba(255,255,255,0.45);padding:13px 20px;cursor:pointer;font-family:'Mukta',sans-serif;font-size:0.83rem;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s}
+.tab:hover{color:rgba(255,255,255,0.8)}
+.tab.act{color:#C9922A;border-bottom-color:#C9922A;font-weight:700}
+.pg{display:none;padding:2rem}
+.pg.act{display:block}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+.stat{background:#1A0E06;border:1px solid rgba(201,146,42,0.2);border-radius:8px;padding:1.25rem;text-align:center}
+.stat-n{font-family:'Yatra One',serif;font-size:2.2rem;color:#C9922A;line-height:1}
+.stat-l{font-size:0.65rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:5px}
+.sec{font-family:'Yatra One',serif;font-size:1.1rem;color:#C9922A;margin-bottom:1rem}
+.srch{background:#1A0E06;border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:7px 12px;color:#F4ECD8;font-family:'Mukta',sans-serif;font-size:0.82rem;width:280px;margin-bottom:1rem}
+.srch:focus{outline:none;border-color:#C9922A}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{text-align:left;padding:9px 12px;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:0.67rem;font-weight:700}
+.open{background:#1A4D2A;color:#6FCF97}.pending{background:#412402;color:#F0B86A}
+.accepted{background:#1A4D2A;color:#6FCF97}.closed{background:#4A1B0C;color:#F08070}
+.declined{background:#3A1A1A;color:#F08080}
+.btn{background:#B8432F;color:#fff;border:none;padding:4px 11px;border-radius:3px;cursor:pointer;font-size:0.72rem;font-weight:700;font-family:'Mukta',sans-serif}
+.btn:hover{background:#8C2E1A}
+.btn.d{background:rgba(180,40,40,0.3);color:#F08070}
+.btn.d:hover{background:#7A1A1A;color:#fff}
+.prev{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.5);font-size:0.75rem}
+.email{color:#C9922A}
+.empty{color:rgba(255,255,255,0.25);padding:2rem;text-align:center;font-size:0.85rem}
+.err{color:#F08070;padding:1rem;font-size:0.85rem;background:rgba(180,40,40,0.1);border-radius:4px;margin-bottom:1rem}
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#C9922A;color:#1A0F08;padding:10px 16px;border-radius:5px;font-size:0.82rem;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
+#toast.show{opacity:1}
+.loading{color:rgba(255,255,255,0.3);padding:2rem;text-align:center}
+</style>
+</head>
+<body>
+<nav>
+  <h1>कलाचौतारी Admin</h1>
+  <span>Platform Management Dashboard</span>
+</nav>
 <div class="tabs">
-  <button class="tab act" onclick="showTab('dashboard',this)">Dashboard</button>
-  <button class="tab" onclick="showTab('users',this)">Users</button>
-  <button class="tab" onclick="showTab('projects',this)">Projects</button>
-  <button class="tab" onclick="showTab('interests',this)">Interests</button>
-  <button class="tab" onclick="showTab('messages',this)">Messages</button>
-  <button class="tab" onclick="showTab('events',this)">Events</button>
+  <button class="tab act" data-tab="dashboard" onclick="showTab('dashboard')">Dashboard</button>
+  <button class="tab" data-tab="users" onclick="showTab('users')">Users</button>
+  <button class="tab" data-tab="projects" onclick="showTab('projects')">Projects</button>
+  <button class="tab" data-tab="interests" onclick="showTab('interests')">Interests</button>
+  <button class="tab" data-tab="messages" onclick="showTab('messages')">Messages</button>
+  <button class="tab" data-tab="events" onclick="showTab('events')">Events</button>
 </div>
-<div id="pg-dashboard" class="pg act"><div class="stat-row" id="stats"></div><div class="sec">Recent Signups</div><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Joined</th></tr></thead><tbody id="ru"></tbody></table></div>
-<div id="pg-users" class="pg"><input class="srch" placeholder="Search..." oninput="filt('ut',this.value)"/><table id="ut"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Exp</th><th>Joined</th><th></th></tr></thead><tbody id="ub"></tbody></table></div>
-<div id="pg-projects" class="pg"><table><thead><tr><th>Title</th><th>Type</th><th>Owner</th><th>Remote</th><th>Interests</th><th>Status</th><th>Posted</th><th></th></tr></thead><tbody id="pb"></tbody></table></div>
-<div id="pg-interests" class="pg"><table><thead><tr><th>Project</th><th>Applicant</th><th>Email</th><th>Role Offer</th><th>Message</th><th>Status</th><th>Date</th></tr></thead><tbody id="ib"></tbody></table></div>
-<div id="pg-messages" class="pg"><table><thead><tr><th>Conversation</th><th>Type</th><th>Members</th><th>Last Message</th><th>Total</th><th>Created</th></tr></thead><tbody id="mb"></tbody></table></div>
-<div id="pg-events" class="pg"><table><thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Free?</th><th>RSVPs</th><th></th></tr></thead><tbody id="eb"></tbody></table></div>
+
+<div id="pg-dashboard" class="pg act">
+  <div id="err-dashboard"></div>
+  <div class="stat-row" id="stats">
+    <div class="stat"><div class="stat-n">—</div><div class="stat-l">Loading...</div></div>
+  </div>
+  <div class="sec">Recent Signups</div>
+  <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Joined</th></tr></thead>
+  <tbody id="tb-recent"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
+</div>
+
+<div id="pg-users" class="pg">
+  <div id="err-users"></div>
+  <input class="srch" id="srch-users" placeholder="Search users by name, email, role..." oninput="filterTable('tb-users', this.value)"/>
+  <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Disciplines</th><th>Experience</th><th>Joined</th><th></th></tr></thead>
+  <tbody id="tb-users"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody></table>
+</div>
+
+<div id="pg-projects" class="pg">
+  <div id="err-projects"></div>
+  <table><thead><tr><th>Title</th><th>Type</th><th>Owner</th><th>Location</th><th>Remote</th><th>Interests</th><th>Status</th><th>Posted</th><th></th></tr></thead>
+  <tbody id="tb-projects"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody></table>
+</div>
+
+<div id="pg-interests" class="pg">
+  <div id="err-interests"></div>
+  <table><thead><tr><th>Project</th><th>Applicant</th><th>Email</th><th>Role Offer</th><th>Message</th><th>Portfolio</th><th>Status</th><th>Date</th></tr></thead>
+  <tbody id="tb-interests"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody></table>
+</div>
+
+<div id="pg-messages" class="pg">
+  <div id="err-messages"></div>
+  <table><thead><tr><th>Conversation</th><th>Type</th><th>Members</th><th>Last Message</th><th>Total Msgs</th><th>Created</th></tr></thead>
+  <tbody id="tb-messages"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+</div>
+
+<div id="pg-events" class="pg">
+  <div id="err-events"></div>
+  <table><thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Creator</th><th>Free?</th><th>RSVPs</th><th></th></tr></thead>
+  <tbody id="tb-events"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody></table>
+</div>
+
 <div id="toast"></div>
+
 <script>
-const K='${key}',H={'x-admin-key':K,'Content-Type':'application/json'};
-function fmt(d){return d?new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'}):'—'}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-function filt(id,q){document.querySelectorAll('#'+id+' tbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none'})}
-async function showTab(t,btn){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('act'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('act'));document.getElementById('pg-'+t).classList.add('act');btn.classList.add('act');if(t==='dashboard')await lDash();if(t==='users')await lUsers();if(t==='projects')await lProj();if(t==='interests')await lInt();if(t==='messages')await lMsgs();if(t==='events')await lEvs()}
-async function lDash(){
+const KEY = '${key}';
+const H = { 'x-admin-key': KEY, 'Content-Type': 'application/json' };
+
+function fmt(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function showErr(tab, msg) {
+  const el = document.getElementById('err-' + tab);
+  if (el) el.innerHTML = '<div class="err">' + msg + '</div>';
+}
+
+function filterTable(tbId, q) {
+  const rows = document.querySelectorAll('#' + tbId + ' tr');
+  rows.forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('act'));
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('act'));
+  document.querySelector('[data-tab="' + name + '"]').classList.add('act');
+  document.getElementById('pg-' + name).classList.add('act');
+  loadTab(name);
+}
+
+async function apiFetch(path) {
+  const r = await fetch(path, { headers: H });
+  if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + await r.text());
+  const data = await r.json();
+  if (!Array.isArray(data)) throw new Error('Expected array, got: ' + JSON.stringify(data).slice(0, 100));
+  return data;
+}
+
+async function loadTab(name) {
   try {
-    const [u,p,e,i] = await Promise.all([
-      fetch('/api/admin/users',{headers:H}).then(r=>r.json()),
-      fetch('/api/admin/projects',{headers:H}).then(r=>r.json()),
-      fetch('/api/admin/events',{headers:H}).then(r=>r.json()),
-      fetch('/api/admin/interests',{headers:H}).then(r=>r.json())
-    ]);
-    const users = Array.isArray(u) ? u : [];
-    const projs = Array.isArray(p) ? p : [];
-    const evts  = Array.isArray(e) ? e : [];
-    const ints  = Array.isArray(i) ? i : [];
-    // 7-day signups
-    const week = new Date(Date.now()-7*86400000);
-    const newUsers = users.filter(x=>new Date(x.created_at)>week).length;
-    document.getElementById('stats').innerHTML=[
-      {n:users.length,l:'Total Users'},
-      {n:newUsers,l:'New This Week'},
-      {n:projs.filter(x=>x.status==='open').length,l:'Open Projects'},
-      {n:ints.filter(x=>x.status==='pending').length,l:'Pending Interests'},
-      {n:evts.length,l:'Events'},
-      {n:ints.filter(x=>x.status==='accepted').length,l:'Collabs Started'}
-    ].map(s=>'<div class="stat"><div class="stat-n">'+s.n+'</div><div class="stat-l">'+s.l+'</div></div>').join('');
-    document.getElementById('ru').innerHTML=users.length ? users.slice(0,15).map(x=>'<tr><td>'+x.name+'</td><td style="color:#C9922A">'+x.email+'</td><td>'+(x.role||'—')+'</td><td>'+(x.location||'—')+'</td><td>'+fmt(x.created_at)+'</td></tr>').join('') : '<tr><td colspan="5" style="color:rgba(255,255,255,0.3);padding:1rem">No users yet</td></tr>';
-    if(u.error) console.error('Admin users error:', u.error);
-  } catch(err) {
-    console.error('Dashboard error:', err);
-    document.getElementById('stats').innerHTML='<div style="color:#F08070;padding:1rem">Error loading data: '+err.message+'</div>';
+    if (name === 'dashboard') await loadDashboard();
+    else if (name === 'users') await loadUsers();
+    else if (name === 'projects') await loadProjects();
+    else if (name === 'interests') await loadInterests();
+    else if (name === 'messages') await loadMessages();
+    else if (name === 'events') await loadEvents();
+  } catch(e) {
+    showErr(name, 'Error: ' + e.message);
+    console.error(name, e);
   }
 }
-async function lUsers(){const u=await fetch('/api/admin/users',{headers:H}).then(r=>r.json());document.getElementById('ub').innerHTML=u.map(x=>'<tr><td><strong>'+x.name+'</strong></td><td style="color:#C9922A">'+x.email+'</td><td>'+(x.role||'—')+'</td><td>'+(x.location||'—')+'</td><td>'+(x.experience_years||0)+'yr</td><td>'+fmt(x.created_at)+'</td><td><button class="btn d" onclick="dUser(\''+x.id+'\',\''+x.name.replace(/'/g,"\\'")+'\')" >Del</button></td></tr>').join('')}
-async function lProj(){const p=await fetch('/api/admin/projects',{headers:H}).then(r=>r.json());document.getElementById('pb').innerHTML=p.map(x=>'<tr><td><strong>'+x.title+'</strong></td><td>'+x.type+'</td><td>'+(x.owner_name||'?')+'</td><td>'+(x.remote_ok?'✓':'✗')+'</td><td>'+(x.interest_count||0)+'</td><td><span class="badge '+x.status+'">'+x.status+'</span></td><td>'+fmt(x.created_at)+'</td><td><button class="btn d" onclick="cProj(\''+x.id+'\')">Close</button></td></tr>').join('')}
-async function lInt(){const i=await fetch('/api/admin/interests',{headers:H}).then(r=>r.json());document.getElementById('ib').innerHTML=i.map(x=>'<tr><td>'+(x.project_title||'?')+'</td><td><strong>'+(x.user_name||'?')+'</strong></td><td style="color:#C9922A">'+(x.user_email||'')+'</td><td>'+(x.role_offer||'—')+'</td><td class="prev">'+(x.message||'—')+'</td><td><span class="badge '+(x.status||'pending')+'">'+(x.status||'pending')+'</span></td><td>'+fmt(x.created_at)+'</td></tr>').join('')}
-async function lMsgs(){const c=await fetch('/api/admin/conversations',{headers:H}).then(r=>r.json());document.getElementById('mb').innerHTML=c.map(x=>'<tr><td>'+(x.name||(x.type==='direct'?'Direct':'Group'))+'</td><td>'+x.type+'</td><td>'+(x.member_count||0)+'</td><td class="prev">'+(x.last_msg||'—')+'</td><td>'+(x.msg_count||0)+'</td><td>'+fmt(x.created_at)+'</td></tr>').join('')}
-async function lEvs(){const e=await fetch('/api/admin/events',{headers:H}).then(r=>r.json());document.getElementById('eb').innerHTML=e.map(x=>'<tr><td><strong>'+x.title+'</strong></td><td>'+x.event_date+'</td><td>'+(x.location||'—')+'</td><td>'+(x.is_free?'Free':'Paid')+'</td><td>'+(x.rsvp_count||0)+'</td><td><button class="btn d" onclick="dEv(\''+x.id+'\')">Del</button></td></tr>').join('')}
-async function dUser(id,name){if(!confirm('Delete '+name+'?'))return;await fetch('/api/admin/users/'+id,{method:'DELETE',headers:H});toast('Deleted');lUsers()}
-async function cProj(id){await fetch('/api/admin/projects/'+id+'/close',{method:'PATCH',headers:H});toast('Closed');lProj()}
-async function dEv(id){if(!confirm('Delete?'))return;await fetch('/api/admin/events/'+id,{method:'DELETE',headers:H});toast('Deleted');lEvs()}
-lDash();
-</script></body></html>`);
+
+async function loadDashboard() {
+  const [users, projects, events, interests] = await Promise.all([
+    apiFetch('/api/admin/users'),
+    apiFetch('/api/admin/projects'),
+    apiFetch('/api/admin/events'),
+    apiFetch('/api/admin/interests'),
+  ]);
+  const week = new Date(Date.now() - 7 * 86400000);
+  const newUsers = users.filter(u => new Date(u.created_at) > week).length;
+  document.getElementById('stats').innerHTML = [
+    { n: users.length,    l: 'Total Users' },
+    { n: newUsers,        l: 'New This Week' },
+    { n: projects.filter(p => p.status === 'open').length, l: 'Open Projects' },
+    { n: interests.filter(i => i.status === 'pending').length, l: 'Pending Interests' },
+    { n: interests.filter(i => i.status === 'accepted').length, l: 'Collabs Started' },
+    { n: events.length,   l: 'Events' },
+  ].map(s => '<div class="stat"><div class="stat-n">' + s.n + '</div><div class="stat-l">' + s.l + '</div></div>').join('');
+  document.getElementById('tb-recent').innerHTML = users.length
+    ? users.slice(0, 15).map(u =>
+        '<tr><td><strong>' + u.name + '</strong></td><td class="email">' + u.email + '</td><td>' + (u.role || '—') + '</td><td>' + (u.location || '—') + '</td><td>' + fmt(u.created_at) + '</td></tr>'
+      ).join('')
+    : '<tr><td colspan="5" class="empty">No users yet</td></tr>';
+}
+
+async function loadUsers() {
+  const users = await apiFetch('/api/admin/users');
+  document.getElementById('tb-users').innerHTML = users.length
+    ? users.map(u =>
+        '<tr>' +
+        '<td><strong>' + u.name + '</strong>' + (u.name_np ? '<br><small style="opacity:0.5">' + u.name_np + '</small>' : '') + '</td>' +
+        '<td class="email">' + u.email + '</td>' +
+        '<td>' + (u.role || '—') + '</td>' +
+        '<td>' + (u.location || '—') + '</td>' +
+        '<td>' + (Array.isArray(u.disciplines) ? u.disciplines.join(', ') : (u.disciplines || '—')) + '</td>' +
+        '<td>' + (u.experience_years || 0) + ' yrs</td>' +
+        '<td>' + fmt(u.created_at) + '</td>' +
+        '<td><button class="btn d" onclick="deleteUser(\'' + u.id + '\',\'' + u.name.replace(/'/g, "\\'") + '\')">Delete</button></td>' +
+        '</tr>'
+      ).join('')
+    : '<tr><td colspan="8" class="empty">No users yet</td></tr>';
+}
+
+async function loadProjects() {
+  const projects = await apiFetch('/api/admin/projects');
+  document.getElementById('tb-projects').innerHTML = projects.length
+    ? projects.map(p =>
+        '<tr>' +
+        '<td><strong>' + p.title + '</strong></td>' +
+        '<td>' + p.type + '</td>' +
+        '<td>' + (p.owner_name || '?') + '</td>' +
+        '<td>' + (p.location || '—') + '</td>' +
+        '<td>' + (p.remote_ok ? '✓' : '✗') + '</td>' +
+        '<td>' + (p.interest_count || 0) + '</td>' +
+        '<td><span class="badge ' + p.status + '">' + p.status + '</span></td>' +
+        '<td>' + fmt(p.created_at) + '</td>' +
+        '<td><button class="btn d" onclick="closeProject(\'' + p.id + '\')">Close</button></td>' +
+        '</tr>'
+      ).join('')
+    : '<tr><td colspan="9" class="empty">No projects yet</td></tr>';
+}
+
+async function loadInterests() {
+  const interests = await apiFetch('/api/admin/interests');
+  document.getElementById('tb-interests').innerHTML = interests.length
+    ? interests.map(i =>
+        '<tr>' +
+        '<td>' + (i.project_title || '?') + '</td>' +
+        '<td><strong>' + (i.user_name || '?') + '</strong></td>' +
+        '<td class="email">' + (i.user_email || '—') + '</td>' +
+        '<td>' + (i.role_offer || '—') + '</td>' +
+        '<td class="prev">' + (i.message || '—') + '</td>' +
+        '<td>' + (i.portfolio_link ? '<a href="' + i.portfolio_link + '" target="_blank" style="color:#C9922A">Link</a>' : '—') + '</td>' +
+        '<td><span class="badge ' + (i.status || 'pending') + '">' + (i.status || 'pending') + '</span></td>' +
+        '<td>' + fmt(i.created_at) + '</td>' +
+        '</tr>'
+      ).join('')
+    : '<tr><td colspan="8" class="empty">No interests yet</td></tr>';
+}
+
+async function loadMessages() {
+  const convs = await apiFetch('/api/admin/conversations');
+  document.getElementById('tb-messages').innerHTML = convs.length
+    ? convs.map(c =>
+        '<tr>' +
+        '<td>' + (c.name || (c.type === 'direct' ? 'Direct Message' : 'Group')) + '</td>' +
+        '<td>' + c.type + '</td>' +
+        '<td>' + (c.member_count || 0) + '</td>' +
+        '<td class="prev">' + (c.last_msg || '—') + '</td>' +
+        '<td>' + (c.msg_count || 0) + '</td>' +
+        '<td>' + fmt(c.created_at) + '</td>' +
+        '</tr>'
+      ).join('')
+    : '<tr><td colspan="6" class="empty">No conversations yet</td></tr>';
+}
+
+async function loadEvents() {
+  const events = await apiFetch('/api/admin/events');
+  document.getElementById('tb-events').innerHTML = events.length
+    ? events.map(e =>
+        '<tr>' +
+        '<td><strong>' + e.title + '</strong></td>' +
+        '<td>' + e.event_date + '</td>' +
+        '<td>' + (e.location || '—') + '</td>' +
+        '<td>' + (e.creator_name || '?') + '</td>' +
+        '<td>' + (e.is_free ? '<span class="badge open">Free</span>' : '<span class="badge pending">Paid</span>') + '</td>' +
+        '<td>' + (e.rsvp_count || 0) + '</td>' +
+        '<td><button class="btn d" onclick="deleteEvent(\'' + e.id + '\')">Delete</button></td>' +
+        '</tr>'
+      ).join('')
+    : '<tr><td colspan="7" class="empty">No events yet</td></tr>';
+}
+
+async function deleteUser(id, name) {
+  if (!confirm('Delete user "' + name + '"? This cannot be undone.')) return;
+  await fetch('/api/admin/users/' + id, { method: 'DELETE', headers: H });
+  toast('User deleted');
+  loadUsers();
+  loadDashboard();
+}
+
+async function closeProject(id) {
+  await fetch('/api/admin/projects/' + id + '/close', { method: 'PATCH', headers: H });
+  toast('Project closed');
+  loadProjects();
+}
+
+async function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  await fetch('/api/admin/events/' + id, { method: 'DELETE', headers: H });
+  toast('Event deleted');
+  loadEvents();
+}
+
+// Load dashboard on start
+loadDashboard();
+</script>
+</body>
+</html>`);
 });
+
 
 app.get('/api/admin/users', adminAuth, async (req,res)=>res.json(await dbAll('SELECT id,name,name_np,email,role,location,disciplines,skills,experience_years,avatar_init,created_at FROM users ORDER BY created_at DESC')));
 app.delete('/api/admin/users/:id', adminAuth, async (req,res)=>{ await db('DELETE FROM users WHERE id=$1',[req.params.id]); res.json({ok:true}); });
