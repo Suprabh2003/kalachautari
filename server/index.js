@@ -212,7 +212,7 @@ app.post('/api/auth/register', async (req, res) => {
   await db(`INSERT INTO users (id,name,email,password,role,location,disciplines,avatar_init,avatar_color) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
     [id, name, email, hash, role||'', location||'', JSON.stringify(disciplines||[]), name.charAt(0).toUpperCase(), color]);
   const token = jwt.sign({id,name,email}, JWT_SECRET, {expiresIn:'30d'});
-  const user = await dbOne('SELECT id,name,name_np,email,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote FROM users WHERE id=$1', [id]);
+  const user = await dbOne('SELECT id,name,name_np,email,role,bio,bio_np,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote FROM users WHERE id=$1', [id]);
   res.json({ token, user });
 });
 
@@ -231,7 +231,12 @@ app.get('/api/users', optAuth, async (req, res) => {
   let sql = `SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote,created_at FROM users WHERE 1=1`;
   const params = [];
   if (type) { params.push(`%${type}%`); sql += ` AND disciplines::text ILIKE $${params.length}`; }
-  if (search) { params.push(`%${search}%`); sql += ` AND (name ILIKE $${params.length} OR role ILIKE $${params.length} OR skills::text ILIKE $${params.length})`; }
+  if (search) {
+    params.push(`%${search}%`); const si = params.length;
+    params.push(`%${search}%`); const si2 = params.length;
+    params.push(`%${search}%`); const si3 = params.length;
+    sql += ` AND (name ILIKE $${si} OR role ILIKE $${si2} OR skills::text ILIKE $${si3})`;
+  }
   sql += ` ORDER BY created_at DESC`;
   res.json(await dbAll(sql, params));
 });
@@ -246,8 +251,8 @@ app.get('/api/users/:id', async (req, res) => {
 
 app.patch('/api/users/me', auth, async (req, res) => {
   const { name, name_np, role, bio, bio_np, location, disciplines, skills, genres, experience_years, open_to_remote } = req.body;
-  await db(`UPDATE users SET name=COALESCE($1,name),name_np=COALESCE($2,name_np),role=COALESCE($3,role),bio=COALESCE($4,bio),bio_np=COALESCE($5,bio_np),location=COALESCE($6,location),disciplines=COALESCE($7,disciplines),skills=COALESCE($8,skills),genres=COALESCE($9,genres),experience_years=COALESCE($10,experience_years),open_to_remote=COALESCE($11,open_to_remote) WHERE id=$12`,
-    [name,name_np,role,bio,bio_np,location,disciplines?JSON.stringify(disciplines):null,skills?JSON.stringify(skills):null,genres?JSON.stringify(genres):null,experience_years,open_to_remote!==undefined?(open_to_remote?1:0):null,req.user.id]);
+  await db(`UPDATE users SET name=COALESCE($1,name),name_np=COALESCE($2,name_np),role=COALESCE($3,role),bio=COALESCE($4,bio),bio_np=COALESCE($5,bio_np),location=COALESCE($6,location),disciplines=COALESCE($7::jsonb,disciplines),skills=COALESCE($8::jsonb,skills),genres=COALESCE($9::jsonb,genres),experience_years=COALESCE($10,experience_years),open_to_remote=COALESCE($11,open_to_remote) WHERE id=$12`,
+    [name||null,name_np||null,role||null,bio||null,bio_np||null,location||null,disciplines?JSON.stringify(disciplines):null,skills?JSON.stringify(skills):null,genres?JSON.stringify(genres):null,experience_years||null,open_to_remote!==undefined?(open_to_remote?1:0):null,req.user.id]);
   res.json(await dbOne('SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote FROM users WHERE id=$1', [req.user.id]));
 });
 
@@ -259,7 +264,11 @@ app.get('/api/projects', optAuth, async (req, res) => {
   if (status) { params.push(status); sql += ` AND p.status=$${params.length}`; } else sql += ` AND p.status='open'`;
   if (type) { params.push(type); sql += ` AND p.type=$${params.length}`; }
   if (remote==='1') sql += ` AND p.remote_ok=1`;
-  if (search) { params.push(`%${search}%`); sql += ` AND (p.title ILIKE $${params.length} OR p.description ILIKE $${params.length})`; }
+  if (search) {
+    params.push(`%${search}%`); const ps1 = params.length;
+    params.push(`%${search}%`); const ps2 = params.length;
+    sql += ` AND (p.title ILIKE $${ps1} OR p.description ILIKE $${ps2})`;
+  }
   sql += ` ORDER BY p.created_at DESC`;
   res.json(await dbAll(sql, params));
 });
