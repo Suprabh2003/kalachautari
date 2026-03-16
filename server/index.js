@@ -475,6 +475,14 @@ app.post('/api/portfolio', auth, async (req, res) => {
   res.status(201).json(await dbOne('SELECT * FROM portfolio_items WHERE id=$1', [id]));
 });
 
+app.delete('/api/portfolio/:id', auth, async (req, res) => {
+  const item = await dbOne('SELECT * FROM portfolio_items WHERE id=$1', [req.params.id]);
+  if (!item) return res.status(404).json({ error:'Not found' });
+  if (item.user_id !== req.user.id) return res.status(403).json({ error:'Forbidden' });
+  await db('DELETE FROM portfolio_items WHERE id=$1', [req.params.id]);
+  res.json({ ok: true });
+});
+
 // ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
 app.get('/api/notifications', auth, async (req, res) => {
   res.json(await dbAll('SELECT * FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50', [req.user.id]));
