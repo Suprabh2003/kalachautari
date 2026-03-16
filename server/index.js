@@ -126,6 +126,18 @@ async function setupSchema() {
       title TEXT NOT NULL, body TEXT DEFAULT '', link TEXT DEFAULT '',
       read INTEGER DEFAULT 0, created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS forum_posts (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
+      title TEXT NOT NULL, body TEXT NOT NULL,
+      category TEXT DEFAULT 'general', link TEXT DEFAULT '',
+      likes INTEGER DEFAULT 0, comment_count INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS forum_comments (
+      id TEXT PRIMARY KEY, post_id TEXT NOT NULL,
+      user_id TEXT NOT NULL, content TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
   console.log('Schema ready');
 }
@@ -488,6 +500,46 @@ app.post('/api/upload', auth, upload.single('file'), (req, res) => {
   const newName = uuid() + path.extname(req.file.originalname);
   fs.renameSync(req.file.path, path.join(UPLOAD_DIR, newName));
   res.json({ url:`/uploads/${newName}`, name:req.file.originalname, size:req.file.size });
+});
+
+
+// ─── FORUM ────────────────────────────────────────────────────────────────────
+app.get('/api/forum', async (req, res) => {
+  const { category } = req.query;
+  let sql = `SELECT f.*,u.name as author_name,u.avatar_init,u.avatar_color,u.id as author_id
+    FROM forum_posts f JOIN users u ON f.user_id=u.id WHERE 1=1`;
+  const params = [];
+  if (category && category !== 'all') { params.push(category); sql += ` AND f.category=$${params.length}`; }
+  sql += ` ORDER BY f.created_at DESC LIMIT 50`;
+  res.json(await dbAll(sql, params));
+});
+
+app.post('/api/forum', auth, async (req, res) => {
+  const { title, body, category, link } = req.body;
+  if (!title || !body) return res.status(400).json({ error: 'Title and body required' });
+  const id = uuid();
+  await db(`INSERT INTO forum_posts (id,user_id,title,body,category,link) VALUES ($1,$2,$3,$4,$5,$6)`,
+    [id, req.user.id, title, body, category||'general', link||'']);
+  const post = await dbOne(`SELECT f.*,u.name as author_name,u.avatar_init,u.avatar_color FROM forum_posts f JOIN users u ON f.user_id=u.id WHERE f.id=$1`, [id]);
+  res.status(201).json(post);
+});
+
+app.post('/api/forum/:id/like', auth, async (req, res) => {
+  await db(`UPDATE forum_posts SET likes=likes+1 WHERE id=$1`, [req.params.id]);
+  res.json({ ok: true });
+});
+
+app.get('/api/forum/:id/comments', async (req, res) => {
+  res.json(await dbAll(`SELECT c.*,u.name as author_name,u.avatar_init FROM forum_comments c JOIN users u ON c.user_id=u.id WHERE c.post_id=$1 ORDER BY c.created_at ASC`, [req.params.id]));
+});
+
+app.post('/api/forum/:id/comments', auth, async (req, res) => {
+  const { content } = req.body;
+  if (!content?.trim()) return res.status(400).json({ error: 'Content required' });
+  const id = uuid();
+  await db(`INSERT INTO forum_comments (id,post_id,user_id,content) VALUES ($1,$2,$3,$4)`, [id, req.params.id, req.user.id, content]);
+  await db(`UPDATE forum_posts SET comment_count=comment_count+1 WHERE id=$1`, [req.params.id]);
+  res.status(201).json({ id });
 });
 
 // ─── ADMIN ────────────────────────────────────────────────────────────────────

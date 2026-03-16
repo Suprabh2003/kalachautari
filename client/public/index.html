@@ -325,7 +325,7 @@ textarea.finp{resize:none}
 
 /* OVERLAY */
 .overlay{position:fixed;inset:0;background:rgba(26,15,8,0.7);display:flex;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(3px)}
-.modal{background:var(--card);border-radius:12px;width:100%;max-width:470px;overflow:hidden;animation:fadeUp 0.3s cubic-bezier(.22,1,.36,1)}
+.modal{background:var(--card);border-radius:12px;width:100%;max-width:560px;overflow:hidden;animation:fadeUp 0.3s cubic-bezier(.22,1,.36,1)}
 .modal-hd{background:var(--ink);padding:1.35rem 1.5rem;color:#fff;position:relative}
 .modal-hd::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--rust),var(--gold))}
 .modal-hd h3{font-family:'Yatra One',serif;color:var(--gold);font-size:1.12rem}
@@ -1121,7 +1121,7 @@ async function viewProfile(uid){
           <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:2px">${sanitize(user.location||'')}${user.experience_years?' · '+user.experience_years+' yrs exp':''}</div>
         </div>
       </div>
-      ${!isMe?`<button class="btn-p" onclick="startDMWith('${uid}','${esc(user.name)}');closeOverlay()" style="position:absolute;top:1rem;right:1rem;font-size:0.78rem">✉ Message</button>`:''}
+      ${!isMe?`<div style="position:absolute;top:1rem;right:1rem;background:rgba(0,0,0,0.25);color:#fff;font-size:0.68rem;padding:3px 10px;border-radius:10px;opacity:0.7">${sanitize(user.open_to_remote?'Remote OK':'In-person')}</div>`:''}
     </div>
     <div class="modal-body" style="padding:0;max-height:70vh;overflow-y:auto">
       ${user.bio?`<div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);font-size:0.85rem;color:var(--muted);line-height:1.6">${sanitize(user.bio)}</div>`:''}
@@ -1149,7 +1149,7 @@ async function viewProfile(uid){
     </div>
     <div class="modal-foot">
       <button class="btn-o" onclick="closeOverlay()">Close</button>
-      ${!isMe?`<button class="btn-p" onclick="startDMWith('${uid}','${esc(user.name)}');closeOverlay()">✉ Send Message</button>`:''}
+      ${!isMe?`<button class="btn-p" onclick="startDMWith('${uid}','${esc(user.name)}');closeOverlay()">✉ Message ${sanitize(user.name.split(' ')[0])}</button>`:''}
     </div>`);
 }
 
@@ -1280,65 +1280,122 @@ function addPortItem(){
 }
 
 // ── FORUM ─────────────────────────────────────────────────────────────────
-function setForumFilter(btn,cat){document.querySelectorAll('#p-forum .fpill').forEach(p=>p.classList.remove('act'));btn.classList.add('act');S.forumFilter=cat;renderForum();}
-function renderForum(){
-  const posts=S.forumFilter==='all'?S.forumPosts:S.forumPosts.filter(p=>p.cat===S.forumFilter);
-  document.getElementById('forum-grid').innerHTML=posts.map(p=>`
+function setForumFilter(btn,cat){
+  document.querySelectorAll('#p-forum .fpill').forEach(p=>p.classList.remove('act'));
+  btn.classList.add('act');S.forumFilter=cat;renderForum();
+}
+
+async function renderForum(){
+  const grid=document.getElementById('forum-grid');
+  grid.innerHTML='<div style="color:var(--muted);padding:1.5rem;text-align:center">Loading posts...</div>';
+  const params=new URLSearchParams();
+  if(S.forumFilter&&S.forumFilter!=='all')params.set('category',S.forumFilter);
+  const posts=await api('/forum?'+params);
+  if(!posts||!posts.length){
+    grid.innerHTML='<div style="color:var(--muted);padding:1.5rem;text-align:center;font-size:0.85rem">No posts yet. Be the first to share something!</div>';
+    return;
+  }
+  grid.innerHTML=posts.map(p=>`
     <div class="forum-card reveal" onclick="showForumPost('${p.id}')">
       <div style="display:flex;gap:10px;align-items:flex-start">
-        <div class="forum-av ${p.color}">${getForumAvatar(p)}</div>
+        <div class="forum-av ${p.avatar_color||'rust'}" style="cursor:pointer" onclick="viewProfile('${p.author_id}');event.stopPropagation()">
+          ${p.author_id===S.user?.id&&S.photoUrl?`<img src="${S.photoUrl}"/>`:`${p.avatar_init||'?'}`}
+        </div>
         <div style="flex:1">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.78rem;font-weight:700">${p.author}</span>
-            <div style="display:flex;align-items:center;gap:8px"><span class="fcat ${p.cat}">${p.cat}</span><span style="font-size:0.68rem;color:var(--muted2)">${p.time}</span></div>
+            <span style="font-size:0.78rem;font-weight:700;cursor:pointer;color:var(--rust)" onclick="viewProfile('${p.author_id}');event.stopPropagation()">${sanitize(p.author_name)}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="fcat ${p.category||'general'}">${p.category||'general'}</span>
+              <span style="font-size:0.68rem;color:var(--muted2)">${fmtTime(p.created_at)}</span>
+            </div>
           </div>
-          <div class="forum-title">${p.title}</div>
-          <div class="forum-preview">${p.body.slice(0,120)}${p.body.length>120?'…':''}</div>
-          <div class="forum-meta"><span>♥ ${p.likes}</span><span>💬 ${p.comments}</span></div>
+          <div class="forum-title">${sanitize(p.title)}</div>
+          <div class="forum-preview">${sanitize(p.body.slice(0,120))}${p.body.length>120?'…':''}</div>
+          <div class="forum-meta">
+            <span>♥ ${p.likes||0} likes</span>
+            <span>💬 ${p.comment_count||0} comments</span>
+          </div>
         </div>
       </div>
     </div>`).join('');
   setTimeout(initReveal,50);
 }
-function getForumAvatar(p){
-  if(p.author===S.user?.name&&S.photoUrl)return`<img src="${S.photoUrl}"/>`;
-  return p.init;
-}
-function showForumPost(id){
-  const p=S.forumPosts.find(x=>x.id===id);if(!p)return;
-  showModal(`<div class="modal-hd"><h3>${p.title}</h3><p>By ${p.author} · ${p.time}</p></div>
-    <div class="modal-body">
-      <div style="font-size:0.86rem;color:var(--ink);line-height:1.65;margin-bottom:1rem">${p.body}</div>
+
+async function showForumPost(id){
+  const posts=await api('/forum');
+  const p=posts?.find(x=>x.id===id);if(!p)return;
+  const comments=await api('/forum/'+id+'/comments');
+  const commentsHtml=(comments||[]).length?comments.map(c=>`
+    <div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--border2)">
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:var(--rust);flex-shrink:0">${c.avatar_init||'?'}</div>
+      <div><div style="font-size:0.75rem;font-weight:700">${sanitize(c.author_name)} <span style="font-weight:400;color:var(--muted2)">${fmtTime(c.created_at)}</span></div>
+      <div style="font-size:0.8rem;color:var(--ink)">${sanitize(c.content)}</div></div>
+    </div>`).join(''):'<div style="color:var(--muted);font-size:0.8rem">No comments yet. Be the first!</div>';
+  showModal(`<div class="modal-hd"><h3>${sanitize(p.title)}</h3><p>By ${sanitize(p.author_name)} · ${fmtTime(p.created_at)}</p></div>
+    <div class="modal-body" style="max-height:60vh;overflow-y:auto">
+      <div style="font-size:0.86rem;color:var(--ink);line-height:1.65;margin-bottom:1rem">${sanitize(p.body)}</div>
       ${p.link?`<a href="${p.link}" target="_blank" class="btn-o" style="display:inline-block;margin-bottom:1rem;font-size:0.8rem">View Work →</a>`:''}
+      <div style="border-top:1px solid var(--border);padding-top:0.875rem;margin-bottom:0.875rem">
+        <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:8px">Comments (${p.comment_count||0})</div>
+        <div id="comments-list">${commentsHtml}</div>
+      </div>
       <div style="border-top:1px solid var(--border);padding-top:0.875rem">
-        <div class="flbl" style="margin-bottom:6px">Leave a comment</div>
-        <textarea class="finp" id="forum-comment" style="height:70px" placeholder="Share your thoughts..."></textarea>
+        <textarea class="finp" id="forum-comment" style="height:70px" placeholder="Add a comment..."></textarea>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn-o" onclick="closeOverlay()">Close</button>
-      <button class="btn-p" onclick="likePost('${id}')">♥ Like (${p.likes})</button>
-      <button class="btn-p" onclick="postComment('${id}')">Comment</button>
+      <button class="btn-o" onclick="likePost('${id}')">♥ Like (${p.likes||0})</button>
+      <button class="btn-p" onclick="submitComment('${id}')">Post Comment</button>
     </div>`);
 }
-function likePost(id){const p=S.forumPosts.find(x=>x.id===id);if(p)p.likes++;closeOverlay();renderForum();toast('Liked!');}
-function postComment(id){const t=document.getElementById('forum-comment')?.value;if(!t?.trim())return;const p=S.forumPosts.find(x=>x.id===id);if(p)p.comments++;closeOverlay();renderForum();toast('Comment posted!');}
+
+async function likePost(id){
+  await api('/forum/'+id+'/like',{method:'POST'});
+  closeOverlay();renderForum();toast('Liked!');
+}
+
+async function submitComment(id){
+  const t=document.getElementById('forum-comment')?.value?.trim();
+  if(!t)return toast('Write something first');
+  await api('/forum/'+id+'/comments',{method:'POST',body:{content:t}});
+  closeOverlay();renderForum();toast('Comment posted!');
+}
+
 function showNewPost(){
   showModal(`<div class="modal-hd"><h3>New Post</h3><p>Share with the Kalachautari community</p></div>
     <div class="modal-body">
       <div class="fgrp"><label class="flbl">Title</label><input class="finp" id="np-title" placeholder="What are you sharing?"/></div>
-      <div class="fgrp"><label class="flbl">Category</label><select class="finp" id="np-cat"><option value="general">General</option><option value="music">Music</option><option value="film">Film</option><option value="art">Art</option><option value="inspo">Inspiration</option></select></div>
-      <div class="fgrp"><label class="flbl">Content</label><textarea class="finp" id="np-body" style="height:100px" placeholder="Share your thoughts, work, or inspiration..."></textarea></div>
-      <div class="fgrp"><label class="flbl">Link (optional)</label><input class="finp" id="np-link" placeholder="SoundCloud, YouTube..."/></div>
+      <div class="fgrp"><label class="flbl">Category</label>
+        <select class="finp" id="np-cat">
+          <option value="general">General</option>
+          <option value="music">Music</option>
+          <option value="film">Film</option>
+          <option value="art">Art</option>
+          <option value="inspo">Inspiration</option>
+        </select>
+      </div>
+      <div class="fgrp"><label class="flbl">Content</label><textarea class="finp" id="np-body" style="height:100px" placeholder="Share your work, thoughts, or inspiration..."></textarea></div>
+      <div class="fgrp"><label class="flbl">Link (optional)</label><input class="finp" id="np-link" placeholder="SoundCloud, YouTube, Behance..."/></div>
     </div>
-    <div class="modal-foot"><button class="btn-o" onclick="closeOverlay()">Cancel</button><button class="btn-p" onclick="createPost()">Post</button></div>`);
+    <div class="modal-foot">
+      <button class="btn-o" onclick="closeOverlay()">Cancel</button>
+      <button class="btn-p" onclick="createPost()">Post to Community</button>
+    </div>`);
 }
-function createPost(){
+
+async function createPost(){
   const title=document.getElementById('np-title')?.value.trim();
   const body=document.getElementById('np-body')?.value.trim();
   if(!title||!body)return toast('Title and content are required');
-  S.forumPosts.unshift({id:'f'+Date.now(),author:S.user?.name||'You',init:S.user?.avatar_init||'?',color:S.user?.avatar_color||'rust',cat:document.getElementById('np-cat')?.value||'general',title,body,link:document.getElementById('np-link')?.value||'',likes:0,comments:0,time:'just now'});
-  closeOverlay();renderForum();toast('Posted to the community!');
+  const res=await api('/forum',{method:'POST',body:{
+    title,body,
+    category:document.getElementById('np-cat')?.value||'general',
+    link:document.getElementById('np-link')?.value||''
+  }});
+  closeOverlay();
+  if(res?.error)return toast('Error: '+res.error);
+  renderForum();toast('Posted to the community! 🎉');
 }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────
