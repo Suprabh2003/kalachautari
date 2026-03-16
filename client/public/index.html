@@ -448,7 +448,7 @@ textarea.finp{resize:none}
     <button class="nav-btn" data-p="match"><span class="en-t">Match</span><span class="np-t np">मेल</span></button>
     <button class="nav-btn" data-p="forum"><span class="en-t">Forum</span><span class="np-t np">मञ्च</span></button>
     <button class="nav-btn" data-p="events"><span class="en-t">Events</span><span class="np-t np">कार्यक्रम</span></button>
-    <button class="nav-btn" data-p="messages"><span class="en-t">Messages</span><span class="np-t np">सन्देश</span><span class="nbadge" id="msg-badge" style="display:none">0</span></button>
+    <button class="nav-btn" data-p="messages" style="position:relative" id="nav-msgs-btn"><span style="font-size:1rem">✉</span> <span class="en-t">Messages</span><span class="np-t np">सन्देश</span><span class="nbadge" id="msg-badge" style="display:none">0</span></button>
     <button class="nav-btn" data-p="notifs"><span class="en-t">Notifications</span><span class="np-t np">सूचना</span><span class="nbadge" id="notif-badge" style="display:none">0</span></button>
     <button class="nav-btn" data-p="profile"><span class="en-t">Profile</span><span class="np-t np">प्रोफाइल</span></button>
     <div class="lang-tog">
@@ -777,6 +777,17 @@ const S={
 
 const API=window.location.origin;
 
+// XSS protection - sanitize any user content before rendering as HTML
+function sanitize(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 // PostgreSQL returns arrays natively, SQLite returns JSON strings
 // This helper handles both cases safely
 function parseArr(val) {
@@ -894,8 +905,15 @@ function doLogout(){localStorage.removeItem('kc_token');localStorage.removeItem(
 function updateNavAv(){
   const el=document.getElementById('nav-av');
   if(!el)return;
-  if(S.photoUrl){el.innerHTML=`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;el.style.background='none';}
-  else{el.textContent=S.user?.avatar_init||S.user?.name?.charAt(0)||'?';el.style.background=colorMap(S.user?.avatar_color);}
+  if(S.photoUrl){
+    el.innerHTML=`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+    el.style.background='none';
+    el.style.overflow='hidden';
+  } else {
+    el.innerHTML='';
+    el.textContent=S.user?.avatar_init||S.user?.name?.charAt(0)||'?';
+    el.style.background=colorMap(S.user?.avatar_color)||'var(--rust)';
+  }
 }
 function colorMap(c){const m={rust:'var(--rust)',blue:'var(--himalaya)',gold:'var(--gold)',green:'var(--green)'};return m[c]||'var(--rust)';}
 
@@ -1093,9 +1111,12 @@ function handleBannerUpload(input){
 function renderProfilePhoto(){
   const outer=document.getElementById('prof-av-outer');
   const initials=document.getElementById('prof-av-initials');
-  if(!outer)return;
+  if(!outer||!initials)return;
   if(S.photoUrl){
-    if(initials)initials.innerHTML=`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover"/>`;
+    initials.innerHTML=`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  } else {
+    initials.className='prof-av-initials';
+    initials.textContent=S.user?.avatar_init||S.user?.name?.charAt(0)||'?';
   }
 }
 
@@ -1344,8 +1365,8 @@ async function renderChatArea(cid,name,init,type,members){
 }
 function msgBubble(m){
   const isOut=m.sender_id===S.user?.id,isSys=m.type==='system';
-  if(isSys)return`<div class="msg sys"><div class="mbub">${m.content}</div></div>`;
-  return`<div class="msg ${isOut?'out':'in'}">${!isOut&&m.sender_name?`<div style="font-size:0.62rem;color:var(--muted);margin-bottom:2px">${m.sender_name}</div>`:''}<div class="mbub">${m.content}</div><div class="mt">${fmtTime(m.created_at)}</div></div>`;
+  if(isSys)return`<div class="msg sys"><div class="mbub">${sanitize(m.content)}</div></div>`;
+  return`<div class="msg ${isOut?'out':'in'}">${!isOut&&m.sender_name?`<div style="font-size:0.62rem;color:var(--muted);margin-bottom:2px">${sanitize(m.sender_name)}</div>`:''}<div class="mbub">${m.content}</div><div class="mt">${fmtTime(m.created_at)}</div></div>`;
 }
 function appendMessage(m){const b=document.getElementById('msgs-box');if(!b)return;b.insertAdjacentHTML('beforeend',msgBubble(m));b.scrollTop=b.scrollHeight;}
 function updateConvPreview(cid,c){const ci=document.querySelector(`.ci[onclick*="${cid}"] .ci-prev`);if(ci)ci.textContent=c.slice(0,50);}

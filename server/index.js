@@ -11,6 +11,8 @@ const multer       = require('multer');
 const { v4: uuid } = require('uuid');
 const fs           = require('fs');
 const { Pool }     = require('pg');
+const rateLimit    = require('express-rate-limit');
+const helmet       = require('helmet');
 
 const JWT_SECRET   = process.env.JWT_SECRET   || 'kalachautari-secret-2025';
 const ADMIN_SECRET = process.env.ADMIN_SECRET  || 'kalachautari-admin-2025';
@@ -188,8 +190,25 @@ function adminAuth(req, res, next) {
 }
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// Security headers
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// Rate limiting
+const limiter = rateLimit({ windowMs: 15*60*1000, max: 200, message: { error: 'Too many requests, slow down.' } });
+const authLimiter = rateLimit({ windowMs: 15*60*1000, max: 20, message: { error: 'Too many login attempts.' } });
+app.use('/api/', limiter);
+app.use('/api/auth/', authLimiter);
+
+// CORS - restrict to your domain in production
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGIN || '*',
+  methods: ['GET','POST','PATCH','DELETE'],
+  allowedHeaders: ['Content-Type','Authorization','x-admin-key']
+}));
+
+// Body size limit - prevent large payload attacks  
+app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(UPLOAD_DIR));
 const upload = multer({ dest: UPLOAD_DIR, limits: { fileSize: 100 * 1024 * 1024 } });
 const wsClients = new Map();
@@ -536,6 +555,8 @@ wss.on('connection', (ws, req) => {
         const msg = { id,conv_id,sender_id:userId,sender_name:sender.name,sender_init:sender.avatar_init,type:'text',content,created_at:new Date().toISOString() };
         const members = await dbAll('SELECT user_id FROM conv_members WHERE conv_id=$1', [conv_id]);
         members.forEach(m => {
+          // Don't echo back to sender — frontend already added it optimistically
+          if (m.user_id === userId) return;
           const mws = wsClients.get(m.user_id);
           if (mws && mws.readyState===WebSocket.OPEN) mws.send(JSON.stringify({ event:'message', data:msg }));
         });
