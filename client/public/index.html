@@ -967,19 +967,19 @@ async function loadProjects(){
   if(!ps.length){g.innerHTML='<div style="color:var(--muted);padding:2.5rem;text-align:center;grid-column:1/-1">No projects found. <button class="btn-sm" onclick="goPage(\'post-project\')">Post the first one!</button></div>';return;}
   const tc={Music:'rust',Film:'blue',Literature:'green','Visual Art':'gold',Dance:'gold'};
   g.innerHTML=ps.map((p,i)=>`
-    <div class="card reveal" style="overflow:hidden">
+    <div class="card reveal" style="overflow:hidden;cursor:pointer" onclick="viewProjectDetail('${p.id}')">
       <div class="pc-head">
         <div>
-          <div class="pc-title">${p.title}</div>
-          <div style="font-size:0.7rem;color:var(--muted)">${p.location||''}${p.remote_ok?' · Remote OK':''}</div>
+          <div class="pc-title">${sanitize(p.title)}</div>
+          <div style="font-size:0.7rem;color:var(--muted)">${sanitize(p.location||'')}${p.remote_ok?' · Remote OK':''}</div>
         </div>
         <span class="tag ${tc[p.type]||''}">${p.type}</span>
       </div>
       <div class="pc-body">
-        <div class="pc-desc">${(p.description||'').slice(0,150)}${(p.description||'').length>150?'…':''}</div>
+        <div class="pc-desc">${sanitize((p.description||'').slice(0,150))}${(p.description||'').length>150?'…':''}</div>
         <div style="margin-bottom:5px">
           <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);margin-bottom:4px">Looking for</div>
-          ${parseArr(p.roles_needed).map(r=>`<span class="need">${r}</span>`).join('')}
+          ${parseArr(p.roles_needed).map(r=>`<span class="need">${sanitize(r)}</span>`).join('')}
         </div>
       </div>
       <div class="pc-foot">
@@ -988,14 +988,91 @@ async function loadProjects(){
           <span style="font-size:0.72rem;color:var(--rust);font-weight:600">${sanitize(p.owner_name)}</span>
         </div>
         <span style="font-size:0.7rem;color:var(--muted)">${p.interest_count||0} interested</span>
-        ${p.owner_id===S.user?.id
-          ?`<button class="btn-sm" onclick="viewInterests('${p.id}','${esc(p.title)}')">View Interests</button>`
-          :`<button class="btn-g" style="padding:4px 13px;font-size:0.72rem" onclick="showInterestModal('${p.id}','${esc(p.title)}')">I'm Interested</button>`
-        }
+        <span style="font-size:0.72rem;color:var(--rust);font-weight:700">View Details →</span>
       </div>
     </div>`).join('');
   setTimeout(initReveal,50);
 }
+async function viewProjectDetail(pid){
+  const p = await api('/projects/'+pid);
+  if(!p) return;
+  const isOwner = p.owner_id === S.user?.id;
+  const roles = parseArr(p.roles_needed);
+  const media = parseArr(p.media_links).filter(Boolean);
+  const tc={Music:'rust',Film:'blue',Literature:'green','Visual Art':'gold',Dance:'gold'};
+
+  const mediaHtml = media.length ? `
+    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border)">
+      <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:8px">Reference Tracks & Links</div>
+      ${media.map(link=>`
+        <a href="${link}" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--cream2);border-radius:5px;margin-bottom:5px;text-decoration:none;color:var(--himalaya);font-size:0.8rem;font-weight:600" onclick="event.stopPropagation()">
+          <span style="font-size:0.9rem">${link.includes('soundcloud')?'🎵':link.includes('youtube')||link.includes('youtu.be')?'▶️':link.includes('vimeo')?'🎬':'🔗'}</span>
+          ${sanitize(link.replace('https://','').replace('http://','').slice(0,55))}${link.length>60?'…':''}
+        </a>`).join('')}
+    </div>` : '';
+
+  const rolesHtml = roles.length ? `
+    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border)">
+      <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:8px">Roles Needed</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${roles.map(r=>`<span style="background:var(--rust);color:#fff;font-size:0.75rem;padding:4px 12px;border-radius:12px;font-weight:600">${sanitize(r)}</span>`).join('')}
+      </div>
+    </div>` : '';
+
+  const colorBg={rust:'linear-gradient(135deg,#8C2E1A,#5A1A0A)',blue:'linear-gradient(135deg,#163A5E,#0A1E30)',gold:'linear-gradient(135deg,#A87820,#6B4E10)',green:'linear-gradient(135deg,#2A6B3C,#0F2E1A)'};
+  const bg = colorBg[tc[p.type]?.toLowerCase()] || colorBg.rust;
+
+  showModal(`
+    <div style="background:${bg};padding:1.5rem;position:relative">
+      <div>
+        <span style="background:rgba(255,255,255,0.15);color:#fff;font-size:0.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:10px">${p.type}</span>
+        <div style="font-family:'Yatra One',serif;font-size:1.4rem;color:#fff;margin-top:8px;margin-bottom:4px">${sanitize(p.title)}</div>
+        ${p.title_np?`<div style="font-size:0.85rem;color:rgba(255,255,255,0.6)">${sanitize(p.title_np)}</div>`:''}
+        <div style="display:flex;gap:12px;margin-top:8px;font-size:0.72rem;color:rgba(255,255,255,0.65)">
+          ${p.location?`<span>📍 ${sanitize(p.location)}</span>`:''}
+          ${p.remote_ok?'<span>🌐 Remote OK</span>':''}
+          ${p.timeline?`<span>⏱ ${sanitize(p.timeline)}</span>`:''}
+          <span>👥 ${p.interest_count||0} interested</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:0;max-height:65vh;overflow-y:auto">
+      
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border)">
+        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px">About this project</div>
+        <div style="font-size:0.87rem;color:var(--ink);line-height:1.65">${sanitize(p.description||'')}</div>
+        ${p.description_np?`<div style="font-size:0.82rem;color:var(--muted);margin-top:6px;font-style:italic">${sanitize(p.description_np)}</div>`:''}
+      </div>
+
+      ${rolesHtml}
+      ${mediaHtml}
+
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border)">
+        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:8px">Project Owner</div>
+        <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="closeOverlay();viewProfile('${p.owner_id}')">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-family:'Yatra One',serif;font-size:0.9rem;color:var(--rust)">${p.owner_init||'?'}</div>
+          <div>
+            <div style="font-weight:700;font-size:0.88rem;color:var(--rust)">${sanitize(p.owner_name)}</div>
+            <div style="font-size:0.7rem;color:var(--muted)">Click to view profile & portfolio →</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:0.875rem 1.25rem;background:var(--gold-light)">
+        <div style="font-size:0.75rem;color:var(--gold2);line-height:1.5">
+          <strong>How it works:</strong> Click "I'm Interested" to apply. Write your role and a short message. The owner will review your profile and portfolio, then accept or decline. If accepted, a private conversation opens between you both.
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-o" onclick="closeOverlay()">Close</button>
+      ${isOwner
+        ? `<button class="btn-p" onclick="closeOverlay();viewInterests('${p.id}','${esc(p.title)}')">View Interests (${p.interest_count||0})</button>`
+        : `<button class="btn-p" onclick="closeOverlay();showInterestModal('${p.id}','${esc(p.title)}')">I'm Interested — Apply</button>`
+      }
+    </div>`);
+}
+
 function ownerAvHtml(p){
   // check if owner has a photo stored locally (they'd have to be the logged in user)
   if(p.owner_id===S.user?.id&&S.photoUrl)return`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
