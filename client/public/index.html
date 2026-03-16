@@ -983,9 +983,9 @@ async function loadProjects(){
         </div>
       </div>
       <div class="pc-foot">
-        <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="viewProfile('${p.owner_id}');event.stopPropagation()">
           <div class="ow-av">${ownerAvHtml(p)}</div>
-          <span style="font-size:0.72rem;color:var(--muted)">${p.owner_name}</span>
+          <span style="font-size:0.72rem;color:var(--rust);font-weight:600">${sanitize(p.owner_name)}</span>
         </div>
         <span style="font-size:0.7rem;color:var(--muted)">${p.interest_count||0} interested</span>
         ${p.owner_id===S.user?.id
@@ -1057,27 +1057,115 @@ async function loadCreators(){
   const g=document.getElementById('creators-grid');
   if(!us.length){g.innerHTML='<div style="color:var(--muted);padding:2rem">No creatives found.</div>';return;}
   g.innerHTML=us.map((u,i)=>`
-    <div class="card reveal" style="overflow:hidden">
+    <div class="card reveal" style="overflow:hidden;cursor:pointer" onclick="viewProfile('${u.id}')">
       <div class="cc-banner ${u.avatar_color||'rust'}"><div class="cc-pat"></div>
         <div class="cc-av cc-av-bg">${creatorAvHtml(u)}</div>
       </div>
       <div class="cc-body">
-        <div class="cc-name">${u.name}</div>
-        <div class="cc-role">${u.role||''}</div>
-        <div class="cc-bio">${(u.bio||'').slice(0,90)}${(u.bio||'').length>90?'…':''}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${parseArr(u.skills).slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}</div>
+        <div class="cc-name">${sanitize(u.name)}</div>
+        <div class="cc-role">${sanitize(u.role||'')}</div>
+        <div class="cc-bio">${sanitize((u.bio||'').slice(0,90))}${(u.bio||'').length>90?'…':''}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${parseArr(u.skills).slice(0,3).map(s=>`<span class="tag">${sanitize(s)}</span>`).join('')}</div>
         <div class="cc-foot">
-          <span class="cc-loc">${u.location||'—'} · ${u.experience_years||0}yr</span>
-          ${u.id!==S.user?.id?`<button class="btn-p" style="padding:4px 13px;font-size:0.72rem" onclick="startDMWith('${u.id}','${esc(u.name)}')">Connect</button>`:`<span class="tag green">You</span>`}
+          <span class="cc-loc">${sanitize(u.location||'—')} · ${u.experience_years||0}yr</span>
+          <span style="font-size:0.7rem;color:var(--rust);font-weight:700">View Profile →</span>
         </div>
       </div>
     </div>`).join('');
   setTimeout(initReveal,50);
 }
+
 function creatorAvHtml(u){
   if(u.id===S.user?.id&&S.photoUrl)return`<img src="${S.photoUrl}"/>`;
   return`<span style="font-family:'Yatra One',serif;font-size:1.05rem;color:var(--rust)">${u.avatar_init||u.name.charAt(0)}</span>`;
 }
+
+async function viewProfile(uid){
+  const user=await api('/users/'+uid);
+  if(!user)return;
+  const portfolio=user.portfolio||[];
+  const skills=parseArr(user.skills);
+  const genres=parseArr(user.genres);
+  const isMe=uid===S.user?.id;
+
+  const portHtml = portfolio.length ? portfolio.map(p=>`
+    <div onclick="viewPortfolioPiece(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="background:var(--cream2);border:1.5px solid var(--border);border-radius:7px;padding:10px 12px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--rust)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="background:var(--rust);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase">${sanitize(p.type)}</span>
+        <span style="font-size:0.8rem;font-weight:700">${sanitize(p.title)}</span>
+      </div>
+      ${p.description?`<div style="font-size:0.73rem;color:var(--muted)">${sanitize(p.description)}</div>`:''}
+      ${p.url&&p.type==='Image'?`<img src="${p.url}" style="width:100%;border-radius:4px;margin-top:6px;max-height:120px;object-fit:cover"/>`:''}
+      ${p.link?`<div style="font-size:0.7rem;color:var(--himalaya);margin-top:4px">🔗 View online</div>`:''}
+    </div>`).join('') : `<div style="color:var(--muted);font-size:0.82rem;font-style:italic">No portfolio items yet.</div>`;
+
+  const projectsHtml = (user.projects||[]).length ? user.projects.map(p=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--cream2);border-radius:6px;margin-bottom:6px">
+      <div style="flex:1"><div style="font-size:0.83rem;font-weight:700">${sanitize(p.title)}</div><div style="font-size:0.7rem;color:var(--muted)">${sanitize(p.type)}</div></div>
+      <span class="tag ${p.status==='open'?'green':''}">${p.status}</span>
+      ${!isMe?`<button class="btn-sm" style="font-size:0.68rem" onclick="showInterestModal('${p.id}','${esc(p.title)}');event.stopPropagation()">Collaborate</button>`:''}
+    </div>`).join('') : `<div style="color:var(--muted);font-size:0.82rem;font-style:italic">No open projects.</div>`;
+
+  const colorBg={rust:'linear-gradient(135deg,#8C2E1A,#5A1A0A)',blue:'linear-gradient(135deg,#163A5E,#0A1E30)',gold:'linear-gradient(135deg,#A87820,#6B4E10)',green:'linear-gradient(135deg,#2A6B3C,#0F2E1A)'};
+  const bg=colorBg[user.avatar_color||'rust']||colorBg.rust;
+
+  showModal(`
+    <div style="background:${bg};padding:1.5rem;position:relative">
+      <div style="display:flex;align-items:flex-end;gap:1rem">
+        <div style="width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);background:var(--cream2);display:flex;align-items:center;justify-content:center;font-family:'Yatra One',serif;font-size:1.5rem;color:var(--rust);overflow:hidden;flex-shrink:0">
+          ${uid===S.user?.id&&S.photoUrl?`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover"/>`:`${user.avatar_init||user.name.charAt(0)}`}
+        </div>
+        <div>
+          <div style="font-family:'Yatra One',serif;font-size:1.3rem;color:#fff">${sanitize(user.name)}</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">${sanitize(user.role||'')}</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:2px">${sanitize(user.location||'')}${user.experience_years?' · '+user.experience_years+' yrs exp':''}</div>
+        </div>
+      </div>
+      ${!isMe?`<button class="btn-p" onclick="startDMWith('${uid}','${esc(user.name)}');closeOverlay()" style="position:absolute;top:1rem;right:1rem;font-size:0.78rem">✉ Message</button>`:''}
+    </div>
+    <div class="modal-body" style="padding:0;max-height:70vh;overflow-y:auto">
+      ${user.bio?`<div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);font-size:0.85rem;color:var(--muted);line-height:1.6">${sanitize(user.bio)}</div>`:''}
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)">
+        ${skills.length?`<div style="padding:0.875rem 1.25rem;border-right:1px solid var(--border)">
+          <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px">Skills</div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px">${skills.map(s=>`<span class="tag">${sanitize(s)}</span>`).join('')}</div>
+        </div>`:''}
+        ${genres.length?`<div style="padding:0.875rem 1.25rem">
+          <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px">Genres</div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px">${genres.map(g=>`<span class="tag rust">${sanitize(g)}</span>`).join('')}</div>
+        </div>`:''}
+      </div>
+
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border)">
+        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:10px">Portfolio</div>
+        <div style="display:flex;flex-direction:column;gap:7px">${portHtml}</div>
+      </div>
+
+      <div style="padding:1rem 1.25rem">
+        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:10px">Open Projects</div>
+        ${projectsHtml}
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-o" onclick="closeOverlay()">Close</button>
+      ${!isMe?`<button class="btn-p" onclick="startDMWith('${uid}','${esc(user.name)}');closeOverlay()">✉ Send Message</button>`:''}
+    </div>`);
+}
+
+function viewPortfolioPiece(p){
+  if(typeof p==='string')try{p=JSON.parse(p)}catch(e){}
+  showModal(`
+    <div class="modal-hd"><h3>${sanitize(p.title)}</h3><p>${sanitize(p.type)}${p.description?' · '+sanitize(p.description):''}</p></div>
+    <div class="modal-body">
+      ${p.url&&(p.type==='Image'||p.type==='Visual')?`<img src="${p.url}" style="width:100%;border-radius:6px;margin-bottom:0.875rem"/>`:''}
+      ${p.url&&p.type==='Audio'?`<audio controls src="${p.url}" style="width:100%;margin-bottom:0.875rem"></audio>`:''}
+      ${p.url&&p.type==='Video'?`<video controls src="${p.url}" style="width:100%;border-radius:6px;margin-bottom:0.875rem"></video>`:''}
+      ${p.link?`<a href="${p.link}" target="_blank" class="btn-o" style="display:inline-block;font-size:0.82rem">View Online →</a>`:''}
+    </div>
+    <div class="modal-foot"><button class="btn-o" onclick="closeOverlay()">Close</button></div>`);
+}
+
 async function startDMWith(uid,name){const r=await api('/conversations',{method:'POST',body:{target_user_id:uid}});if(r?.id){S.currentConv=r.id;goPage('messages');loadConversations();}}
 
 // ── PHOTO UPLOAD ──────────────────────────────────────────────────────────
