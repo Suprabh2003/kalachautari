@@ -367,9 +367,142 @@ textarea.finp{resize:none}
   .pi{padding:1rem}
   .hero-inner{padding:2rem 1rem}
 }
+
+/* ── TOP LOADER ── */
+#top-loader{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--rust),var(--gold),var(--rust));z-index:9999;width:0%;transition:width 0.4s ease,opacity 0.4s ease;pointer-events:none;opacity:0}
+
+/* ── NAV UPGRADE ── */
+#nav{height:64px}
+#nav::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.018) 0,rgba(255,255,255,0.018) 1px,transparent 1px,transparent 6px);pointer-events:none}
+.page{min-height:calc(100vh - 64px)}
+.nav-btn.act::after{transition:width 0.25s ease}
+
+/* ── CARD UPGRADES ── */
+.card{will-change:transform}
+.card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(184,67,47,0.15),0 4px 12px rgba(26,15,8,0.08)}
+
+/* ── RIPPLE ── */
+@keyframes ripple-anim{to{transform:scale(4);opacity:0}}
+.ripple{position:absolute;border-radius:50%;transform:scale(0);animation:ripple-anim 0.6s linear;background:rgba(255,255,255,0.3);pointer-events:none}
+
+/* ── SKELETON ── */
+.sk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1.25rem}
+.sk-card{background:var(--card);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;padding:1rem}
+.sk-line{border-radius:4px;background:linear-gradient(90deg,var(--cream2) 25%,var(--cream3) 50%,var(--cream2) 75%);background-size:200% 100%;animation:shimmer 1.5s linear infinite;margin-bottom:8px}
+
+/* ── PAGE TRANSITIONS ── */
+@keyframes pageExit{to{opacity:0;transform:translateY(-6px)}}
+@keyframes pageEnterKC{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.page-exit{animation:pageExit 0.2s ease forwards;pointer-events:none}
+.page-enter-active{animation:pageEnterKC 0.25s ease forwards}
+
+/* ── HERO MANDALA BREATHING ── */
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.hero-mandala-wrap svg{animation:spin 80s linear infinite,breathe 6s ease-in-out infinite}
+
+/* ── COLLAB SCORE BADGE ── */
+.collab-score{display:inline-flex;align-items:center;gap:5px;background:var(--gold-light);border:1px solid rgba(201,146,42,0.3);border-radius:12px;padding:3px 11px;font-size:0.7rem;color:var(--gold2);font-weight:700;margin-top:6px}
+
+/* ── COMPOSE BAR (forum) ── */
+.compose-bar{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:0.875rem 1.1rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;margin-bottom:1rem}
+.compose-bar:hover{border-color:var(--rust);box-shadow:0 2px 12px rgba(184,67,47,0.1)}
+.compose-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Yatra One',serif;font-size:0.85rem;color:#fff;flex-shrink:0;overflow:hidden}
+.compose-text{color:var(--muted);font-size:0.85rem;flex:1;text-align:left}
+
+/* ── TRENDING ROW (forum) ── */
+.trending-scroll{display:flex;gap:10px;overflow-x:auto;margin-bottom:1.25rem;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.trending-card{flex-shrink:0;width:210px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:0.75rem;cursor:pointer;transition:all 0.2s}
+.trending-card:hover{border-color:var(--rust);transform:translateY(-2px)}
+.trend-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--gold2);margin-bottom:4px}
+
+/* ── HEART ANIMATION ── */
+@keyframes heartPop{0%{transform:scale(1)}40%{transform:scale(1.45)}70%{transform:scale(0.9)}100%{transform:scale(1)}}
+.heart-liked{animation:heartPop 0.4s ease;color:var(--rust)!important}
+
+/* ── COUNTDOWN BADGE ── */
+.countdown-badge{display:inline-block;font-size:0.63rem;background:rgba(201,146,42,0.12);color:var(--gold2);padding:2px 8px;border-radius:8px;margin-top:3px;font-weight:600}
+
+/* ── MESSAGES UPGRADES ── */
+.online-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:6px;flex-shrink:0}
+.online-dot.on{background:#2A6B3C}.online-dot.off{background:var(--muted2)}
+.chat-inp textarea{flex:1;border:1.5px solid var(--border);border-radius:12px;padding:8px 15px;font-size:0.81rem;font-family:'Mukta',sans-serif;background:var(--cream);color:var(--ink);transition:border-color 0.2s;resize:none;line-height:1.4;max-height:96px;overflow-y:auto}
+.chat-inp textarea:focus{outline:none;border-color:var(--rust)}
+
+/* ── PROFILE AVATAR GLOW ── */
+.prof-av-outer:hover{box-shadow:0 0 0 3px var(--gold),0 0 0 6px rgba(201,146,42,0.2)}
+
+/* ── HAMBURGER ── */
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;margin-left:auto}
+.hamburger span{width:22px;height:2px;background:rgba(255,255,255,0.75);border-radius:2px;display:block;transition:all 0.3s}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+#nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto}
+
+/* ── DEVANAGARI WATERMARK ── */
+.dev-watermark{position:absolute;bottom:-20px;right:5%;font-family:'Yatra One',serif;font-size:clamp(5rem,18vw,12rem);color:var(--gold);opacity:0.045;pointer-events:none;user-select:none;line-height:1;z-index:0}
+
+/* ── FEATURED PROJECT BANNER ── */
+.featured-banner{border:2px solid var(--gold);border-radius:12px;background:linear-gradient(135deg,rgba(201,146,42,0.08),rgba(184,67,47,0.05));padding:1.25rem 1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.featured-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gold);color:var(--ink);font-size:0.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:10px;margin-bottom:8px}
+
+/* ── MOBILE (768px) ── */
+@media(max-width:768px){
+  #nav{padding:0 1rem;flex-wrap:nowrap}
+  #nav-links{display:none;position:absolute;top:64px;left:0;right:0;background:var(--ink);flex-direction:column;align-items:flex-start;padding:0.5rem 0;border-top:1px solid rgba(255,255,255,0.08);z-index:200;gap:0}
+  #nav-links.open{display:flex}
+  #nav-links .nav-btn{width:100%;padding:0.875rem 1.25rem;border-radius:0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.87rem}
+  #nav-links .nav-btn.act::after{display:none}
+  .hamburger{display:flex}
+  .lang-tog{margin-left:8px}
+  .hero-inner{grid-template-columns:1fr;padding:1.75rem 1rem}
+  .hero h1{font-size:1.9rem}
+  .hero-mandala-wrap{display:none}
+  .stat-grid{grid-template-columns:repeat(3,1fr)}
+  .pi{padding:0.875rem}
+  .g3,.g2{grid-template-columns:1fr}
+  .prof-wrap{grid-template-columns:1fr}
+  .msg-layout{grid-template-columns:1fr}
+  .swipe-stack{width:85vw;max-width:330px}
+  .overlay .modal{border-radius:16px 16px 0 0;position:fixed;bottom:0;left:0;right:0;max-width:100%;max-height:90vh;animation:slideUp 0.3s cubic-bezier(.22,1,.36,1)}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .sw-btn{width:48px;height:48px}
+  .hero-btns{gap:8px}
+  .hero-btns .btn-p,.hero-btns .btn-o{padding:9px 16px;font-size:0.82rem}
+  .feat-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:480px){
+  .hero h1{font-size:1.6rem}
+  .auth-logo{font-size:2rem}
+}
+/* ── iMESSAGE BUBBLES ── */
+.mbub{padding:8px 13px;border-radius:14px;font-size:0.81rem;line-height:1.45}
+.msg.out .mbub{background:var(--rust);color:#fff;border-top-right-radius:4px}
+.msg.in .mbub{background:var(--card);color:var(--ink);border-top-left-radius:4px}
+.msg.out.last-in-group .mbub{border-bottom-right-radius:4px}
+.msg.in.last-in-group .mbub{border-bottom-left-radius:4px}
+.sent-check{font-size:0.6rem;margin-left:4px;opacity:0.75}
+/* ── CREATOR QUICK-VIEW OVERLAY ── */
+.cc-overlay{position:absolute;inset:0;background:rgba(26,15,8,0.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0;transition:opacity 0.22s;border-radius:inherit;padding:1rem}
+.card:hover .cc-overlay{opacity:1}
+/* ── MATCH SVG SCORE ── */
+.match-score-svg{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.score-ring{flex-shrink:0}
+.score-ring circle.track{fill:none;stroke:var(--cream3);stroke-width:4}
+.score-ring circle.fill{fill:none;stroke:var(--gold);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.8s cubic-bezier(.22,1,.36,1)}
+.score-label{font-size:0.7rem;color:var(--muted);line-height:1.3}
+.score-label strong{color:var(--gold2);font-size:0.95rem;display:block}
+/* ── MATCH PARTICLES ── */
+@keyframes floatPart{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-120px) scale(0.3);opacity:0}}
+.match-particle{position:absolute;pointer-events:none;animation:floatPart 1.2s ease-out forwards;font-size:1.2rem}
+/* ── BUTTON SPINNER ── */
+@keyframes btnSpin{to{transform:rotate(360deg)}}
+.btn-p.loading{opacity:0.7;cursor:not-allowed}
+.btn-p.loading::before{content:'';display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:btnSpin 0.6s linear infinite;margin-right:6px;vertical-align:middle}
 </style>
 </head>
 <body>
+<div id="top-loader"></div>
 <canvas id="fc"></canvas>
 
 <!-- AUTH -->
@@ -408,7 +541,7 @@ textarea.finp{resize:none}
       <div class="auth-err" id="login-err"></div>
       <div class="fgrp"><label class="flbl">Email</label><input class="finp" id="login-email" type="email" placeholder="your@email.com"/></div>
       <div class="fgrp"><label class="flbl">Password</label><input class="finp" id="login-pw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-      <button class="btn-p" style="width:100%" onclick="doLogin()">Sign In</button>
+      <button class="btn-p" id="login-btn" style="width:100%" onclick="doLogin()">Sign In</button>
       
     </div>
     <div id="auth-register" class="auth-form">
@@ -427,7 +560,7 @@ textarea.finp{resize:none}
           <button class="rp-btn" onclick="toggleRP(this)">Dancer</button><button class="rp-btn" onclick="toggleRP(this)">Poet</button>
         </div>
       </div>
-      <button class="btn-p" style="width:100%;margin-top:0.5rem" onclick="doRegister()">Create Account</button>
+      <button class="btn-p" id="reg-btn" style="width:100%;margin-top:0.5rem" onclick="doRegister()">Create Account</button>
     </div>
   </div>
 </div>
@@ -443,6 +576,10 @@ textarea.finp{resize:none}
         <div class="logo-sub">Nepali Creative Hub</div>
       </div>
     </a>
+    <button class="hamburger" id="hamburger" onclick="toggleHamburger()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div id="nav-links">
     <button class="nav-btn act" data-p="projects"><span class="en-t">Projects</span><span class="np-t np">परियोजना</span></button>
     <button class="nav-btn" data-p="discover"><span class="en-t">Creatives</span><span class="np-t np">कलाकार</span></button>
     <button class="nav-btn" data-p="match"><span class="en-t">Match</span><span class="np-t np">मेल</span></button>
@@ -451,6 +588,7 @@ textarea.finp{resize:none}
     <button class="nav-btn" data-p="messages" style="position:relative" id="nav-msgs-btn"><span style="font-size:1rem">✉</span> <span class="en-t">Messages</span><span class="np-t np">सन्देश</span><span class="nbadge" id="msg-badge" style="display:none">0</span></button>
     <button class="nav-btn" data-p="notifs"><span class="en-t">Notifications</span><span class="np-t np">सूचना</span><span class="nbadge" id="notif-badge" style="display:none">0</span></button>
     <button class="nav-btn" data-p="profile"><span class="en-t">Profile</span><span class="np-t np">प्रोफाइल</span></button>
+    </div>
     <div class="lang-tog">
       <button class="lng act" onclick="setLang('en')">EN</button>
       <button class="lng" onclick="setLang('np')">ने</button>
@@ -501,16 +639,20 @@ textarea.finp{resize:none}
     </div>
     <div class="pi">
       <div class="fbar" style="margin-top:1.5rem">
-        <input class="srch" id="proj-search" placeholder="Search projects…" oninput="loadProjects()"/>
+        <input class="srch" id="proj-search" placeholder="Search projects…" oninput="debouncedLoadProjects()"/>
         <button class="fpill act" onclick="setProjFilter(this,'')">All</button>
-        <button class="fpill" onclick="setProjFilter(this,'Music')">Music</button>
-        <button class="fpill" onclick="setProjFilter(this,'Film')">Film</button>
-        <button class="fpill" onclick="setProjFilter(this,'Literature')">Literature</button>
-        <button class="fpill" onclick="setProjFilter(this,'Visual Art')">Visual Art</button>
-        <button class="fpill" onclick="setProjFilter(this,'Dance')">Dance</button>
-        <button class="fpill" onclick="setProjFilter(this,'remote')">Remote OK</button>
+        <button class="fpill" onclick="setProjFilter(this,'Music')">🎵 Music</button>
+        <button class="fpill" onclick="setProjFilter(this,'Film')">🎬 Film</button>
+        <button class="fpill" onclick="setProjFilter(this,'Literature')">📖 Literature</button>
+        <button class="fpill" onclick="setProjFilter(this,'Visual Art')">🎨 Visual Art</button>
+        <button class="fpill" onclick="setProjFilter(this,'Dance')">💃 Dance</button>
+        <button class="fpill" onclick="setProjFilter(this,'remote')">🌐 Remote OK</button>
       </div>
-      <div class="g2" id="projects-grid"><div style="color:var(--muted);padding:2rem;text-align:center">Loading projects...</div></div>
+      <div style="position:relative">
+        <div class="dev-watermark">सिर्जना</div>
+        <div id="featured-project" style="display:none"></div>
+        <div class="g2" id="projects-grid"><div style="color:var(--muted);padding:2rem;text-align:center">Loading projects...</div></div>
+      </div>
     </div>
   </div>
 
@@ -528,7 +670,7 @@ textarea.finp{resize:none}
     </div>
     <div class="pi">
       <div class="fbar" style="margin-top:1.5rem">
-        <input class="srch" id="creator-search" placeholder="Search name, skill…" oninput="loadCreators()"/>
+        <input class="srch" id="creator-search" placeholder="Search name, skill…" oninput="debouncedLoadCreators()"/>
         <button class="fpill act" onclick="setTypeFilter(this,'')">All</button>
         <button class="fpill" onclick="setTypeFilter(this,'musician')">Musicians</button>
         <button class="fpill" onclick="setTypeFilter(this,'filmmaker')">Filmmakers</button>
@@ -553,7 +695,7 @@ textarea.finp{resize:none}
             <button class="sw-btn star" onclick="swipe('super')">★</button>
             <button class="sw-btn conn" onclick="swipe('right')">✓</button>
           </div>
-          <div id="match-pop-wrap" style="display:none;margin-top:1rem">
+          <div id="match-pop-wrap" style="display:none;margin-top:1rem;position:relative;overflow:hidden">
             <div class="match-pop"><div class="mp-t yatra">सञ्जोग भयो!</div>
               <div style="font-size:0.82rem;color:rgba(255,255,255,0.7);margin-bottom:1rem">It's a match! You can now message each other.</div>
               <div style="display:flex;justify-content:center;gap:8px">
@@ -662,7 +804,8 @@ textarea.finp{resize:none}
           <div class="prof-info">
             <div style="font-weight:700;font-size:1.05rem;margin-bottom:2px" id="prof-name">—</div>
             <div style="font-size:0.72rem;color:var(--rust);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px" id="prof-role">—</div>
-            <div style="font-size:0.78rem;color:var(--muted);line-height:1.45;margin-bottom:0.875rem" id="prof-bio"></div>
+            <div style="font-size:0.78rem;color:var(--muted);line-height:1.45;margin-bottom:6px" id="prof-bio"></div>
+          <div class="collab-score" id="prof-collab-score-wrap" style="display:none">🤝 Collab Score: <strong id="prof-collab-score">0</strong>/100</div>
             <div class="p-stats">
               <div class="ps-box"><div class="ps-n" id="prof-stat-proj">0</div><div class="ps-l">Projects</div></div>
               <div class="ps-box"><div class="ps-n" id="prof-stat-exp">0</div><div class="ps-l">Yrs Exp</div></div>
@@ -764,15 +907,6 @@ const S={
   lang:localStorage.getItem('kc_lang')||'en',
   currentConv:null,swipeCandidates:[],swipeIdx:0,recentConnects:[],
   pfStep:1,ws:null,projFilter:'',typeFilter:'',forumFilter:'all',
-
-  photoUrl:localStorage.getItem('kc_photo')||'',
-  forumPosts:[
-    {id:'f1',author:'Aasha Gurung',init:'आ',color:'rust',cat:'music',title:'Sharing my demo — Himalaya EP rough cut',body:'Been working on this folk fusion EP for 6 months. Finally have a rough mix of the first track. Would love feedback from other musicians on the arrangement!',link:'',likes:14,comments:7,time:'2 hours ago'},
-    {id:'f2',author:'Bikash Magar',init:'बि',color:'blue',cat:'film',title:'Films that shaped my storytelling',body:'Growing up watching Lagaan and Taare Zameen Par completely changed how I think about narrative. What films have inspired you? Let\'s build a collective list.',likes:23,comments:12,time:'5 hours ago'},
-    {id:'f3',author:'Mira Thapa',init:'मी',color:'gold',cat:'inspo',title:'Poem for the diaspora — "Ghar"',body:'I wrote this while sitting in London missing the smell of rain on Kathmandu streets. Would love to create a collective poetry thread here.',likes:31,comments:18,time:'Yesterday'},
-    {id:'f4',author:'Anita Lama',init:'अ',color:'green',cat:'art',title:'Thangka meets street art — work in progress',body:'Been experimenting with combining traditional Thangka motifs with contemporary street art aesthetics. Posting some sketches and would love feedback.',likes:19,comments:9,time:'2 days ago'},
-    {id:'f5',author:'Sujen Rai',init:'सु',color:'rust',cat:'general',title:'Remote collab tools that actually work',body:'After collaborating with people across 3 time zones on the Himalaya EP, here are the tools that saved us: Splice, Notion, and a solid shared Google Drive.',likes:42,comments:21,time:'3 days ago'},
-  ]
 };
 
 const API=window.location.origin;
@@ -798,6 +932,8 @@ function parseArr(val) {
 
 
 // ── CANVAS ─────────────────────────────────────────────────────────────────
+let canvasPaused=false;
+document.addEventListener('visibilitychange',()=>{canvasPaused=document.hidden;});
 (function initCanvas(){
   const c=document.getElementById('fc');
   if(!c)return;
@@ -811,26 +947,37 @@ function parseArr(val) {
     op:0.03+Math.random()*0.07,dr:(Math.random()-0.5)*0.25
   }));
   (function draw(){
-    ctx.clearRect(0,0,c.width,c.height);
-    ps.forEach(p=>{
-      ctx.font=p.sz+'px "Yatra One",serif';
-      ctx.fillStyle='rgba(201,146,42,'+p.op+')';
-      ctx.fillText(p.ch,p.x,p.y);
-      p.y-=p.sp;p.x+=p.dr;
-      if(p.y<-40){p.y=c.height+20;p.x=Math.random()*c.width;}
-    });
+    if(!canvasPaused){
+      ctx.clearRect(0,0,c.width,c.height);
+      ps.forEach(p=>{
+        ctx.font=p.sz+'px "Yatra One",serif';
+        ctx.fillStyle='rgba(201,146,42,'+p.op+')';
+        ctx.fillText(p.ch,p.x,p.y);
+        p.y-=p.sp;p.x+=p.dr;
+        if(p.y<-40){p.y=c.height+20;p.x=Math.random()*c.width;}
+      });
+    }
     requestAnimationFrame(draw);
   })();
   window.addEventListener('resize',()=>{c.width=window.innerWidth;c.height=window.innerHeight;});
 })();
 
+// ── TOP LOADER ───────────────────────────────────────────────────────────────
+function showLoader(){const el=document.getElementById('top-loader');if(el){el.style.opacity='1';el.style.width='70%';}}
+function hideLoader(){const el=document.getElementById('top-loader');if(!el)return;el.style.width='100%';setTimeout(()=>{el.style.opacity='0';setTimeout(()=>{el.style.width='0%';},50);},300);}
+
 // ── HELPERS ─────────────────────────────────────────────────────────────────
+function debounce(fn,delay=300){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),delay);};}
+
 async function api(path,opts={}){
+  showLoader();
   const h={'Content-Type':'application/json'};
   if(S.token)h['Authorization']='Bearer '+S.token;
-  const r=await fetch(API+'/api'+path,{headers:h,...opts,body:opts.body?JSON.stringify(opts.body):undefined});
-  if(r.status===401){doLogout();return null;}
-  return r.json();
+  try{
+    const r=await fetch(API+'/api'+path,{headers:h,...opts,body:opts.body?JSON.stringify(opts.body):undefined});
+    if(r.status===401){doLogout();return null;}
+    return r.json();
+  }finally{hideLoader();}
 }
 function toast(msg,d=3500){
   const t=document.getElementById('toast');
@@ -845,7 +992,23 @@ function fmtTime(iso){
   return d.toLocaleDateString();
 }
 function toggleRP(b){b.classList.toggle('sel')}
-function showModal(h){document.getElementById('modal-content').innerHTML=h;document.getElementById('overlay').style.display='flex';}
+function showModal(h){
+  const mc=document.getElementById('modal-content');
+  mc.innerHTML=h;
+  document.getElementById('overlay').style.display='flex';
+  // Add × close button to every modal-hd
+  const hd=mc.querySelector('.modal-hd');
+  if(hd&&!hd.querySelector('.modal-x')){
+    const x=document.createElement('button');
+    x.className='modal-x';
+    x.innerHTML='&times;';
+    x.style.cssText='position:absolute;top:0.75rem;right:1rem;background:none;border:none;color:rgba(255,255,255,0.45);font-size:1.6rem;cursor:pointer;line-height:1;padding:0;transition:color 0.2s;z-index:1';
+    x.onmouseover=()=>x.style.color='#fff';x.onmouseout=()=>x.style.color='rgba(255,255,255,0.45)';
+    x.onclick=()=>document.getElementById('overlay').style.display='none';
+    hd.style.position='relative';
+    hd.appendChild(x);
+  }
+}
 function closeOverlay(e){if(!e||e.target===document.getElementById('overlay'))document.getElementById('overlay').style.display='none';}
 function setLang(l){S.lang=l;localStorage.setItem('kc_lang',l);document.body.classList.toggle('nepali',l==='np');document.querySelectorAll('.lng').forEach(b=>b.classList.toggle('act',b.textContent.trim()===(l==='en'?'EN':'ने')));}
 setLang(S.lang);
@@ -868,10 +1031,13 @@ async function doLogin(){
   const pw=document.getElementById('login-pw').value;
   document.getElementById('login-err').textContent='';
   if(!email||!pw)return document.getElementById('login-err').textContent='Fill in all fields';
-  const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
-  const data=await res.json();
-  if(!res.ok)return document.getElementById('login-err').textContent=data.error||'Login failed';
-  loginSuccess(data.token,data.user);
+  const restore=btnLoad(document.getElementById('login-btn'),'Signing in…');
+  try{
+    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+    const data=await res.json();
+    if(!res.ok){document.getElementById('login-err').textContent=data.error||'Login failed';return;}
+    loginSuccess(data.token,data.user);
+  }finally{restore();}
 }
 async function doRegister(){
   const name=document.getElementById('reg-name').value.trim();
@@ -883,10 +1049,13 @@ async function doRegister(){
   document.getElementById('reg-err').textContent='';
   if(!name||!email||!pw)return document.getElementById('reg-err').textContent='Fill in all required fields';
   if(pw.length<6)return document.getElementById('reg-err').textContent='Password must be at least 6 characters';
-  const res=await fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pw,role,location:loc,disciplines})});
-  const data=await res.json();
-  if(!res.ok)return document.getElementById('reg-err').textContent=data.error||'Registration failed';
-  loginSuccess(data.token,data.user);
+  const restore=btnLoad(document.getElementById('reg-btn'),'Creating account…');
+  try{
+    const res=await fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pw,role,location:loc,disciplines})});
+    const data=await res.json();
+    if(!res.ok){document.getElementById('reg-err').textContent=data.error||'Registration failed';return;}
+    loginSuccess(data.token,data.user);
+  }finally{restore();}
 }
 function loginSuccess(token,user){
   S.token=token;S.user=user;
@@ -905,10 +1074,10 @@ function doLogout(){localStorage.removeItem('kc_token');localStorage.removeItem(
 function updateNavAv(){
   const el=document.getElementById('nav-av');
   if(!el)return;
-  if(S.photoUrl){
-    el.innerHTML=`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
-    el.style.background='none';
-    el.style.overflow='hidden';
+  const photo=S.user?.profile_photo;
+  if(photo){
+    el.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" loading="lazy"/>`;
+    el.style.background='none';el.style.overflow='hidden';
   } else {
     el.innerHTML='';
     el.textContent=S.user?.avatar_init||S.user?.name?.charAt(0)||'?';
@@ -932,18 +1101,40 @@ function connectWS(){
   ws.onclose=()=>setTimeout(connectWS,3000);
 }
 
+// ── HAMBURGER ────────────────────────────────────────────────────────────
+function toggleHamburger(){
+  const ham=document.getElementById('hamburger');
+  const links=document.getElementById('nav-links');
+  if(ham)ham.classList.toggle('open');
+  if(links)links.classList.toggle('open');
+}
+
 // ── NAV ───────────────────────────────────────────────────────────────────
 function goPage(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('act'));
-  document.querySelectorAll('.nav-btn[data-p]').forEach(b=>b.classList.remove('act'));
-  const pg=document.getElementById('p-'+p);if(pg)pg.classList.add('act');
-  const nb=document.querySelector(`.nav-btn[data-p="${p}"]`);if(nb)nb.classList.add('act');
-  if(p==='projects'){loadProjects();loadStats();}if(p==='discover')loadCreators();
-  if(p==='events')loadEvents();if(p==='messages')loadConversations();
-  if(p==='notifs')loadNotifications();if(p==='profile')loadProfile();
-  if(p==='match')loadMatchCandidates();if(p==='forum')renderForum();
-  if(p==='post-project'){S.pfStep=1;showPfStep(1);}
-  setTimeout(initReveal,100);
+  // Close hamburger on nav
+  const ham=document.getElementById('hamburger');
+  const navLinks=document.getElementById('nav-links');
+  if(ham)ham.classList.remove('open');
+  if(navLinks)navLinks.classList.remove('open');
+
+  const cur=document.querySelector('.page.act');
+  const nav=()=>{
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('act','page-exit'));
+    document.querySelectorAll('.nav-btn[data-p]').forEach(b=>b.classList.remove('act'));
+    const pg=document.getElementById('p-'+p);
+    if(pg){pg.classList.add('act','page-enter-active');setTimeout(()=>pg.classList.remove('page-enter-active'),300);}
+    const nb=document.querySelector(`.nav-btn[data-p="${p}"]`);if(nb)nb.classList.add('act');
+    if(p==='projects'){loadProjects();loadStats();}if(p==='discover')loadCreators();
+    if(p==='events')loadEvents();if(p==='messages')loadConversations();
+    if(p==='notifs')loadNotifications();if(p==='profile')loadProfile();
+    if(p==='match')loadMatchCandidates();if(p==='forum')renderForum();
+    if(p==='post-project'){S.pfStep=1;showPfStep(1);}
+    setTimeout(initReveal,100);
+  };
+  if(cur&&cur.id!=='p-'+p){
+    cur.classList.add('page-exit');
+    setTimeout(nav,200);
+  } else {nav();}
 }
 document.querySelectorAll('.nav-btn[data-p]').forEach(b=>b.addEventListener('click',()=>goPage(b.dataset.p)));
 
@@ -962,16 +1153,43 @@ function setProjFilter(btn,t){document.querySelectorAll('#p-projects .fpill').fo
 async function loadProjects(){
   const q=new URLSearchParams();const s=document.getElementById('proj-search')?.value||'';
   if(pjFilter)q.set('type',pjFilter);if(pjRemote)q.set('remote','1');if(s)q.set('search',s);
-  const ps=await api('/projects?'+q);if(!ps)return;
+  // Show skeleton
   const g=document.getElementById('projects-grid');
-  if(!ps.length){g.innerHTML='<div style="color:var(--muted);padding:2.5rem;text-align:center;grid-column:1/-1">No projects found. <button class="btn-sm" onclick="goPage(\'post-project\')">Post the first one!</button></div>';return;}
+  g.innerHTML='<div class="sk-grid" style="display:contents">'+Array(4).fill(`<div class="sk-card"><div class="sk-line" style="height:18px;width:60%;margin-bottom:10px"></div><div class="sk-line" style="height:12px;width:90%"></div><div class="sk-line" style="height:12px;width:75%;margin-bottom:16px"></div><div class="sk-line" style="height:30px;width:40%"></div></div>`).join('')+'</div>';
+  const ps=await api('/projects?'+q);if(!ps)return;
+
+  const featEl=document.getElementById('featured-project');
+  if(featEl){
+    if(!pjFilter&&!pjRemote&&!s&&ps.length){
+      const top=[...ps].sort((a,b)=>(b.interest_count||0)-(a.interest_count||0))[0];
+      if(top&&(top.interest_count||0)>0){
+        featEl.style.display='block';
+        const tc2={Music:'rust',Film:'blue',Literature:'green','Visual Art':'gold',Dance:'gold'};
+        featEl.innerHTML=`<div class="featured-banner" style="cursor:pointer" onclick="viewProjectDetail('${top.id}')">
+          <div class="featured-badge">🔥 Most Active</div>
+          <div style="font-family:'Yatra One',serif;font-size:1.3rem;color:var(--ink);margin-bottom:4px">${sanitize(top.title)}</div>
+          <div style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">${sanitize((top.description||'').slice(0,140))}…</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span class="tag ${tc2[top.type]||''}">${top.type}</span>
+            <span style="font-size:0.75rem;color:var(--rust);font-weight:700">${top.interest_count} people interested</span>
+            ${top.remote_ok?'<span style="font-size:0.72rem;color:var(--muted)">🌐 Remote OK</span>':''}
+          </div>
+        </div>`;
+      } else {featEl.style.display='none';}
+    } else {featEl.style.display='none';}
+  }
+
+  if(!ps.length){
+    g.innerHTML=`<div style="text-align:center;padding:3rem;grid-column:1/-1;position:relative"><div style="font-family:'Yatra One',serif;font-size:8rem;opacity:0.06;color:var(--ink);line-height:1;margin-bottom:0.5rem">परियोजना</div><div style="font-size:0.95rem;color:var(--muted);margin-bottom:1rem">Be the first to post a project</div><button class="btn-p" onclick="goPage('post-project')">+ Post Project</button></div>`;
+    return;
+  }
   const tc={Music:'rust',Film:'blue',Literature:'green','Visual Art':'gold',Dance:'gold'};
   g.innerHTML=ps.map((p,i)=>`
-    <div class="card reveal" style="overflow:hidden;cursor:pointer" onclick="viewProjectDetail('${p.id}')">
+    <div class="card reveal" style="overflow:hidden;cursor:pointer;animation-delay:${Math.min(i,5)*60}ms" onclick="viewProjectDetail('${p.id}')">
       <div class="pc-head">
         <div>
           <div class="pc-title">${sanitize(p.title)}</div>
-          <div style="font-size:0.7rem;color:var(--muted)">${sanitize(p.location||'')}${p.remote_ok?' · Remote OK':''}</div>
+          <div style="font-size:0.7rem;color:var(--muted)">${sanitize(p.location||'')}${p.remote_ok?' · 🌐 Remote OK':''}</div>
         </div>
         <span class="tag ${tc[p.type]||''}">${p.type}</span>
       </div>
@@ -1074,8 +1292,7 @@ async function viewProjectDetail(pid){
 }
 
 function ownerAvHtml(p){
-  // check if owner has a photo stored locally (they'd have to be the logged in user)
-  if(p.owner_id===S.user?.id&&S.photoUrl)return`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  if(p.owner_photo)return`<img src="${p.owner_photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" loading="lazy"/>`;
   return p.owner_init||'?';
 }
 function esc(s){return(s||'').replace(/'/g,"\\'")}
@@ -1134,7 +1351,7 @@ async function loadCreators(){
   const g=document.getElementById('creators-grid');
   if(!us.length){g.innerHTML='<div style="color:var(--muted);padding:2rem">No creatives found.</div>';return;}
   g.innerHTML=us.map((u,i)=>`
-    <div class="card reveal" style="overflow:hidden;cursor:pointer" onclick="viewProfile('${u.id}')">
+    <div class="card reveal" style="overflow:hidden;cursor:pointer;position:relative" onclick="viewProfile('${u.id}')">
       <div class="cc-banner ${u.avatar_color||'rust'}"><div class="cc-pat"></div>
         <div class="cc-av cc-av-bg">${creatorAvHtml(u)}</div>
       </div>
@@ -1148,12 +1365,17 @@ async function loadCreators(){
           <span style="font-size:0.7rem;color:var(--rust);font-weight:700">View Profile →</span>
         </div>
       </div>
+      <div class="cc-overlay">
+        <div style="color:#fff;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:4px">Top Skills</div>
+        ${parseArr(u.skills).slice(0,3).map(s=>`<span style="background:rgba(255,255,255,0.15);color:#fff;padding:3px 10px;border-radius:12px;font-size:0.75rem">${sanitize(s)}</span>`).join('')||'<span style="color:rgba(255,255,255,0.5);font-size:0.75rem">No skills listed</span>'}
+        <div style="color:var(--gold);font-size:0.78rem;font-weight:700;margin-top:8px">View Profile →</div>
+      </div>
     </div>`).join('');
   setTimeout(initReveal,50);
 }
 
 function creatorAvHtml(u){
-  if(u.id===S.user?.id&&S.photoUrl)return`<img src="${S.photoUrl}"/>`;
+  if(u.profile_photo)return`<img src="${u.profile_photo}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>`;
   return`<span style="font-family:'Yatra One',serif;font-size:1.05rem;color:var(--rust)">${u.avatar_init||u.name.charAt(0)}</span>`;
 }
 
@@ -1191,7 +1413,7 @@ async function viewProfile(uid){
     <div style="background:${bg};padding:1.5rem;position:relative">
       <div style="display:flex;align-items:flex-end;gap:1rem">
         <div style="width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);background:var(--cream2);display:flex;align-items:center;justify-content:center;font-family:'Yatra One',serif;font-size:1.5rem;color:var(--rust);overflow:hidden;flex-shrink:0">
-          ${uid===S.user?.id&&S.photoUrl?`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover"/>`:`${user.avatar_init||user.name.charAt(0)}`}
+          ${user.profile_photo?`<img src="${user.profile_photo}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>`:`${user.avatar_init||user.name.charAt(0)}`}
         </div>
         <div>
           <div style="font-family:'Yatra One',serif;font-size:1.3rem;color:#fff">${sanitize(user.name)}</div>
@@ -1252,12 +1474,17 @@ function triggerBannerUpload(){document.getElementById('banner-input').click();}
 
 function handlePhotoUpload(input){
   const file=input.files[0];if(!file)return;
+  if(file.size>1200000)return toast('Photo too large. Please use an image under 1MB.');
   const reader=new FileReader();
-  reader.onload=e=>{
-    S.photoUrl=e.target.result;
-    localStorage.setItem('kc_photo',S.photoUrl);
-    renderProfilePhoto();updateNavAv();
-    toast('Profile photo updated!');
+  reader.onload=async e=>{
+    const photo=e.target.result;
+    const res=await api('/users/me/photo',{method:'PATCH',body:{photo}});
+    if(res?.error)return toast('Error saving photo: '+res.error);
+    S.user.profile_photo=photo;
+    localStorage.setItem('kc_user',JSON.stringify(S.user));
+    renderProfilePhoto(S.user);
+    updateNavAv();
+    toast('Profile photo updated! Visible to everyone now.');
   };
   reader.readAsDataURL(file);
 }
@@ -1274,15 +1501,16 @@ function handleBannerUpload(input){
   reader.readAsDataURL(file);
 }
 
-function renderProfilePhoto(){
+function renderProfilePhoto(user){
   const outer=document.getElementById('prof-av-outer');
   const initials=document.getElementById('prof-av-initials');
   if(!outer||!initials)return;
-  if(S.photoUrl){
-    initials.innerHTML=`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  const u=user||S.user;
+  if(u?.profile_photo){
+    initials.innerHTML=`<img src="${u.profile_photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" loading="lazy"/>`;
   } else {
     initials.className='prof-av-initials';
-    initials.textContent=S.user?.avatar_init||S.user?.name?.charAt(0)||'?';
+    initials.textContent=u?.avatar_init||u?.name?.charAt(0)||'?';
   }
 }
 
@@ -1299,7 +1527,7 @@ async function renderPortfolio(userId){
   g.innerHTML=items.map((p,i)=>`
     <div class="port-item" onclick="viewPortItem(${JSON.stringify(p).replace(/"/g,'&quot;')})">
       <span class="pi-type">${p.type}</span>
-      ${p.file_url?`<img src="${p.file_url}" onerror="this.style.display='none'"/>`:`<span class="pi-icon">${p.type==='Audio'?'♪':p.type==='Video'?'▶':p.type==='Writing'?'✍':'◉'}</span>`}
+      ${p.file_url?`<img src="${p.file_url}" loading="lazy" onerror="this.style.display='none'"/>`:`<span class="pi-icon">${p.type==='Audio'?'♪':p.type==='Video'?'▶':p.type==='Writing'?'✍':'◉'}</span>`}
       <div class="pi-label">${sanitize(p.title)}</div>
     </div>`).join('')+(isMe?`<div class="port-item port-add" onclick="showAddPortfolio()"><div style="font-size:1.5rem;opacity:0.4">+</div><div>Add Work</div></div>`:'');
 }
@@ -1382,15 +1610,38 @@ async function renderForum(){
   const params=new URLSearchParams();
   if(S.forumFilter&&S.forumFilter!=='all')params.set('category',S.forumFilter);
   const posts=await api('/forum?'+params);
+
+  // Compose bar
+  const myPhoto=S.user?.profile_photo;
+  const composeHtml=`<div class="compose-bar" onclick="showNewPost()">
+    <div class="compose-av ${S.user?.avatar_color||'rust'}">${myPhoto?`<img src="${myPhoto}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>`:(S.user?.avatar_init||'?')}</div>
+    <span class="compose-text">Share something with the community…</span>
+    <button class="btn-p" style="font-size:0.75rem;padding:6px 14px;flex-shrink:0">+ Post</button>
+  </div>`;
+
   if(!posts||!posts.length){
-    grid.innerHTML='<div style="color:var(--muted);padding:1.5rem;text-align:center;font-size:0.85rem">No posts yet. Be the first to share something!</div>';
+    grid.innerHTML=composeHtml+'<div style="color:var(--muted);padding:1.5rem;text-align:center;font-size:0.85rem">No posts yet. Be the first to share something!</div>';
     return;
   }
-  grid.innerHTML=posts.map(p=>`
+
+  // Trending row (top 3 by likes)
+  const trending=[...posts].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,3);
+  const trendHtml=trending.length?`<div style="margin-bottom:0.875rem">
+    <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--gold2);margin-bottom:6px">🔥 Trending this week</div>
+    <div class="trending-scroll">${trending.map(p=>`
+      <div class="trending-card" onclick="showForumPost('${p.id}')">
+        <div class="trend-label">${p.category||'general'}</div>
+        <div style="font-size:0.78rem;font-weight:700;line-height:1.35;margin-bottom:4px">${sanitize(p.title.slice(0,55))}${p.title.length>55?'…':''}</div>
+        <div style="font-size:0.68rem;color:var(--rust)">♥ ${p.likes||0} likes</div>
+      </div>`).join('')}
+    </div>
+  </div>`:'' ;
+
+  grid.innerHTML=composeHtml+trendHtml+posts.map(p=>`
     <div class="forum-card reveal" onclick="showForumPost('${p.id}')">
       <div style="display:flex;gap:10px;align-items:flex-start">
         <div class="forum-av ${p.avatar_color||'rust'}" style="cursor:pointer" onclick="viewProfile('${p.author_id}');event.stopPropagation()">
-          ${p.author_id===S.user?.id&&S.photoUrl?`<img src="${S.photoUrl}"/>`:`${p.avatar_init||'?'}`}
+          ${p.author_photo?`<img src="${p.author_photo}" loading="lazy"/>`:`${p.avatar_init||'?'}`}
         </div>
         <div style="flex:1">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
@@ -1403,7 +1654,7 @@ async function renderForum(){
           <div class="forum-title">${sanitize(p.title)}</div>
           <div class="forum-preview">${sanitize(p.body.slice(0,120))}${p.body.length>120?'…':''}</div>
           <div class="forum-meta">
-            <span>♥ ${p.likes||0} likes</span>
+            <span id="heart-${p.id}" style="cursor:pointer" onclick="likePost('${p.id}',this);event.stopPropagation()">♥ ${p.likes||0} likes</span>
             <span>💬 ${p.comment_count||0} comments</span>
           </div>
         </div>
@@ -1441,9 +1692,10 @@ async function showForumPost(id){
     </div>`);
 }
 
-async function likePost(id){
+async function likePost(id,el){
   await api('/forum/'+id+'/like',{method:'POST'});
-  closeOverlay();renderForum();toast('Liked!');
+  if(el){el.classList.add('heart-liked');setTimeout(()=>el.classList.remove('heart-liked'),500);}
+  closeOverlay();renderForum();
 }
 
 async function submitComment(id){
@@ -1490,6 +1742,17 @@ async function createPost(){
 }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────
+function fmtCountdown(dateStr,timeStr){
+  const ev=new Date(dateStr+'T'+(timeStr||'00:00'));
+  const diff=ev-new Date();
+  if(diff<=0)return null;
+  const days=Math.floor(diff/86400000),hrs=Math.floor((diff%86400000)/3600000);
+  if(days>60)return Math.floor(days/30)+' months away';
+  if(days>0)return days+'d '+hrs+'h remaining';
+  if(hrs>0)return hrs+'h remaining';
+  return 'Starting soon';
+}
+
 async function loadEvents(){
   const evs=await api('/events');if(!evs)return;
   const list=document.getElementById('events-list');
@@ -1498,16 +1761,18 @@ async function loadEvents(){
     const d=new Date(e.event_date);
     const day=d.getDate().toString().padStart(2,'0');
     const mon=d.toLocaleString('default',{month:'short'}).toUpperCase();
+    const cd=fmtCountdown(e.event_date,e.event_time);
     return`<div class="ev-card reveal">
       <div class="ev-date ${e.is_free?'free':'paid'}"><div class="ev-day">${day}</div><div class="ev-mon">${mon}</div></div>
       <div class="ev-body">
-        <div class="ev-title">${e.title}</div>
-        <div class="ev-meta">${e.location}${e.event_time?' · '+e.event_time:''}${e.is_online?' · Online':''}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
-          ${parseArr(e.tags).map(t=>`<span class="tag">${t}</span>`).join('')}
-          ${e.is_free?'<span class="tag green">Free</span>':'<span class="tag gold">Ticketed</span>'}
+        <div class="ev-title">${sanitize(e.title)}</div>
+        <div class="ev-meta">${sanitize(e.location||'')}${e.event_time?' · '+e.event_time:''}${e.is_online?' · Online':''}</div>
+        ${cd?`<div class="countdown-badge">⏱ ${cd}</div>`:''}
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">
+          ${parseArr(e.tags).map(t=>`<span class="tag">${sanitize(t)}</span>`).join('')}
+          ${e.is_free?'<span class="tag green">FREE</span>':'<span class="tag gold">Ticketed</span>'}
         </div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">${e.rsvp_count||0} attending · By ${e.creator_name||'Kalachautari'}</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">${e.rsvp_count||0} attending · By ${sanitize(e.creator_name||'Kalachautari')}</div>
       </div>
       <div class="ev-act">
         <button class="btn-p" style="font-size:0.72rem;padding:5px 12px" onclick="showRSVP('${e.id}','${esc(e.title)}','${e.location}','${e.event_date}',${JSON.stringify(e.ticket_tiers).replace(/"/g,'&quot;')})">RSVP</button>
@@ -1571,9 +1836,12 @@ async function loadConversations(){
     const other=c.type==='direct'?c.members?.find(m=>m.id!==S.user?.id):null;
     const name=c.type==='group'?(c.name||'Group'):(other?.name||'Unknown');
     const init=c.type==='group'?'#':(other?.avatar_init||'?');
+    // Online indicator: active if last message within 1 hour
+    const lastMs=c.last_time?Date.now()-new Date(c.last_time).getTime():Infinity;
+    const isOnline=lastMs<3600000;
     return`<div class="ci ${c.id===S.currentConv?'act':''}" onclick="openConv('${c.id}','${esc(name)}','${init}','${c.type}')">
-      <div style="display:flex;justify-content:space-between"><span class="ci-name">${name}</span><span class="ci-t">${fmtTime(c.last_time)}</span></div>
-      <div class="ci-prev">${c.last_msg||'(no messages yet)'}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="ci-name">${sanitize(name)}</span><div style="display:flex;align-items:center;gap:4px"><span class="ci-t">${fmtTime(c.last_time)}</span><span class="online-dot ${isOnline?'on':'off'}"></span></div></div>
+      <div class="ci-prev">${sanitize(c.last_msg||'(no messages yet)')}</div>
     </div>`;
   }).join('');
   if(S.currentConv){const conv=cs.find(c=>c.id===S.currentConv);if(conv){const other=conv.members?.find(m=>m.id!==S.user?.id);renderChatArea(S.currentConv,conv.type==='group'?(conv.name||'Group'):(other?.name||'Unknown'),conv.type==='group'?'#':(other?.avatar_init||'?'),conv.type,conv.members);}}
@@ -1594,21 +1862,26 @@ async function renderChatArea(cid,name,init,type,members){
       <div class="chat-av ${type==='group'?'grp':''}">${init}</div>
       <div><div style="font-weight:700;font-size:0.88rem">${name}</div><div style="font-size:0.7rem;color:var(--muted)">${type==='group'?'Group Chat':'Direct Message'}</div></div>
     </div>
-    <div class="chat-msgs" id="msgs-box">${ms.map(m=>msgBubble(m)).join('')}</div>
+    <div class="chat-msgs" id="msgs-box">${ms.map((m,i,a)=>msgBubble(m,i,a)).join('')}</div>
     ${mb}
-    <div class="chat-inp"><input id="chat-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMsg('${cid}')"/><button class="chat-send" onclick="sendMsg('${cid}')">Send</button></div>`;
+    <div class="chat-inp"><textarea id="chat-input" placeholder="Type a message… (Shift+Enter for newline)" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('${cid}');}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px'"></textarea><button class="chat-send" onclick="sendMsg('${cid}')">Send</button></div>`;
   const box=document.getElementById('msgs-box');if(box)box.scrollTop=box.scrollHeight;
 }
-function msgBubble(m){
+function msgBubble(m,i,arr){
   const isOut=m.sender_id===S.user?.id,isSys=m.type==='system';
   if(isSys)return`<div class="msg sys"><div class="mbub">${sanitize(m.content)}</div></div>`;
-  return`<div class="msg ${isOut?'out':'in'}">${!isOut&&m.sender_name?`<div style="font-size:0.62rem;color:var(--muted);margin-bottom:2px">${sanitize(m.sender_name)}</div>`:''}<div class="mbub">${m.content}</div><div class="mt">${fmtTime(m.created_at)}</div></div>`;
+  arr=arr||[];
+  const next=arr[i+1];
+  const isLast=!next||next.type==='system'||next.sender_id!==m.sender_id;
+  const grpCls=isLast?'last-in-group':'';
+  const check=isOut?`<span class="sent-check">✓</span>`:'';
+  return`<div class="msg ${isOut?'out':'in'} ${grpCls}">${!isOut&&m.sender_name&&i===0?`<div style="font-size:0.62rem;color:var(--muted);margin-bottom:2px">${sanitize(m.sender_name)}</div>`:''}<div class="mbub">${sanitize(m.content)}</div><div class="mt">${fmtTime(m.created_at)}${check}</div></div>`;
 }
 function appendMessage(m){const b=document.getElementById('msgs-box');if(!b)return;b.insertAdjacentHTML('beforeend',msgBubble(m));b.scrollTop=b.scrollHeight;}
 function updateConvPreview(cid,c){const ci=document.querySelector(`.ci[onclick*="${cid}"] .ci-prev`);if(ci)ci.textContent=c.slice(0,50);}
 function sendMsg(cid){
   const inp=document.getElementById('chat-input');if(!inp||!inp.value.trim())return;
-  const content=inp.value.trim();inp.value='';
+  const content=inp.value.trim();inp.value='';inp.style.height='auto';
   if(S.ws&&S.ws.readyState===WebSocket.OPEN)S.ws.send(JSON.stringify({event:'message',data:{conv_id:cid,content}}));
   appendMessage({sender_id:S.user?.id,sender_name:S.user?.name,type:'text',content,created_at:new Date().toISOString()});
 }
@@ -1630,7 +1903,38 @@ async function searchNewConv(q){
   </div>`).join('')||'<div style="font-size:0.78rem;color:var(--muted)">No results</div>';
 }
 
+// ── BUTTON LOAD HELPER ────────────────────────────────────────────────────
+function btnLoad(btn,text='Loading…'){
+  if(!btn)return()=>{};
+  const orig=btn.innerHTML;btn.disabled=true;btn.classList.add('loading');btn.textContent=text;
+  return()=>{btn.disabled=false;btn.classList.remove('loading');btn.innerHTML=orig;};
+}
+
 // ── MATCH ─────────────────────────────────────────────────────────────────
+function matchScoreSvg(pct){
+  const r=20,circ=2*Math.PI*r,dash=circ*(pct/100),gap=circ-dash;
+  return`<div class="match-score-svg">
+    <svg class="score-ring" width="52" height="52" viewBox="0 0 52 52">
+      <circle class="track" cx="26" cy="26" r="${r}"/>
+      <circle class="fill" cx="26" cy="26" r="${r}" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${circ*0.25}" transform="rotate(-90 26 26)"/>
+    </svg>
+    <div class="score-label"><strong>${pct}%</strong>match score</div>
+  </div>`;
+}
+function spawnMatchParticles(container){
+  const emojis=['✨','🎵','🎨','🎭','🌸','⭐','🎶'];
+  for(let i=0;i<9;i++){
+    const el=document.createElement('div');
+    el.className='match-particle';
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left=Math.random()*90+'%';
+    el.style.bottom='10%';
+    el.style.animationDelay=Math.random()*0.4+'s';
+    el.style.animationDuration=(0.9+Math.random()*0.7)+'s';
+    container.appendChild(el);
+    el.addEventListener('animationend',()=>el.remove());
+  }
+}
 async function loadMatchCandidates(){
   const cs=await api('/matches/suggestions');if(!cs)return;
   S.swipeCandidates=cs;S.swipeIdx=0;renderSwipeCards();
@@ -1640,19 +1944,37 @@ function renderSwipeCards(){
   const rem=S.swipeCandidates.slice(S.swipeIdx,S.swipeIdx+2);
   if(!rem.length){stack.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:10px;color:var(--muted)"><div style="font-size:3.5rem;opacity:0.12;font-family:'Yatra One',serif">✓</div><div style="font-size:0.87rem">You've seen everyone for now!</div><button class="btn-o" style="margin-top:8px" onclick="loadMatchCandidates()">Refresh</button></div>`;return;}
   stack.innerHTML=rem.map((c,ri)=>`
-    <div class="swipe-card ${ri===0?'front':'back'}">
+    <div class="swipe-card ${ri===0?'front':'back'}" style="transform-style:preserve-3d">
       <div class="sw-banner ${c.avatar_color||'rust'}"><div class="cc-pat"></div>
-        <div class="sw-av">${c.id===S.user?.id&&S.photoUrl?`<img src="${S.photoUrl}"/>`:`<span style="font-family:'Yatra One',serif;font-size:1.2rem;color:var(--rust)">${c.avatar_init||c.name.charAt(0)}</span>`}</div>
+        <div class="sw-av">${c.profile_photo?`<img src="${c.profile_photo}" style="width:100%;height:100%;object-fit:cover" loading="lazy"/>`:`<span style="font-family:'Yatra One',serif;font-size:1.2rem;color:var(--rust)">${c.avatar_init||c.name.charAt(0)}</span>`}</div>
       </div>
       <div class="sw-info">
-        <div class="sw-name">${c.name}</div>
-        <div class="sw-role">${c.role||''}</div>
-        <div class="match-score"><strong>${c.match_score}% match</strong> — based on genre & discipline</div>
-        <div style="font-size:0.8rem;color:var(--muted);line-height:1.45;margin-bottom:8px">${(c.bio||'').slice(0,100)}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${parseArr(c.skills).slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}</div>
-        <div style="font-size:0.7rem;color:var(--muted2)">${c.location||'—'} · ${c.experience_years||0} yrs${c.open_to_remote?' · Remote OK':''}</div>
+        <div class="sw-name">${sanitize(c.name)}</div>
+        <div class="sw-role">${sanitize(c.role||'')}</div>
+        ${matchScoreSvg(c.match_score)}
+        <div style="font-size:0.8rem;color:var(--muted);line-height:1.45;margin-bottom:8px">${sanitize((c.bio||'').slice(0,100))}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${parseArr(c.skills).slice(0,3).map(s=>`<span class="tag">${sanitize(s)}</span>`).join('')}</div>
+        <div style="font-size:0.7rem;color:var(--muted2)">${sanitize(c.location||'—')} · ${c.experience_years||0} yrs${c.open_to_remote?' · 🌐 Remote OK':''}</div>
       </div>
     </div>`).join('');
+  // 3D tilt + touch swipe on front card
+  const front=stack.querySelector('.swipe-card.front');
+  if(front){
+    front.addEventListener('mousemove',e=>{
+      const r=front.getBoundingClientRect();
+      const x=(e.clientX-r.left-r.width/2)/r.width*16;
+      const y=-(e.clientY-r.top-r.height/2)/r.height*16;
+      front.style.transform=`perspective(1000px) rotateY(${x}deg) rotateX(${y}deg)`;
+    });
+    front.addEventListener('mouseleave',()=>{front.style.transform='';});
+    // Touch swipe
+    let tx0=0;
+    front.addEventListener('touchstart',e=>{tx0=e.touches[0].clientX;},{passive:true});
+    front.addEventListener('touchend',e=>{
+      const dx=e.changedTouches[0].clientX-tx0;
+      if(Math.abs(dx)>60)swipe(dx>0?'right':'left');
+    },{passive:true});
+  }
 }
 async function swipe(dir){
   if(S.swipeIdx>=S.swipeCandidates.length)return;
@@ -1664,7 +1986,9 @@ async function swipe(dir){
     const res=await api('/matches',{method:'POST',body:{target_id:candidate.id,type:dir==='super'?'super':'connect'}});
     if(res?.matched){
       S.recentConnects.unshift(candidate);renderRecentConnects();
-      document.getElementById('match-pop-wrap').style.display='block';
+      const popWrap=document.getElementById('match-pop-wrap');
+      popWrap.style.display='block';
+      spawnMatchParticles(popWrap);
       document.getElementById('match-msg-btn').onclick=async()=>{const c=await api('/conversations',{method:'POST',body:{target_user_id:candidate.id}});if(c?.id){S.currentConv=c.id;goPage('messages');loadConversations();}document.getElementById('match-pop-wrap').style.display='none';};
     }
   }
@@ -1702,33 +2026,56 @@ async function markAllRead(){await api('/notifications/read',{method:'PATCH'});l
 // ── PROFILE ───────────────────────────────────────────────────────────────
 async function loadProfile(){
   const user=await api('/users/'+S.user.id);if(!user)return;
+  // Sync profile_photo back to S.user
+  S.user={...S.user,...user};
+  localStorage.setItem('kc_user',JSON.stringify(S.user));
+
   document.getElementById('prof-name').textContent=user.name;
   document.getElementById('prof-role').textContent=user.role||'';
-  document.getElementById('prof-bio').textContent=user.bio||'Add a bio in Edit Profile';
+
+  // Bio with empty state
+  const bioEl=document.getElementById('prof-bio');
+  if(user.bio){bioEl.textContent=user.bio;}
+  else{bioEl.innerHTML='<a href="#" onclick="showEditProfile();return false" style="color:var(--rust);text-decoration:none;font-style:italic">Add your story →</a>';}
+
   document.getElementById('prof-stat-proj').textContent=user.projects?.length||0;
   document.getElementById('prof-stat-exp').textContent=(user.experience_years||0)+'yr';
   document.getElementById('prof-stat-loc').textContent=(user.location||'?').split(',')[0].slice(0,8);
   document.getElementById('prof-location').textContent=user.location||'Not set';
-  const initEl=document.getElementById('prof-av-initials');
-  if(initEl){
-    if(S.photoUrl)initEl.innerHTML=`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover"/>`;
-    else{initEl.className='prof-av-initials';initEl.textContent=user.avatar_init||user.name.charAt(0);}
-  }
-  // restore banner
+
+  renderProfilePhoto(user);
+
+  // Restore banner
   const savedBanner=localStorage.getItem('kc_banner');
   const banner=document.getElementById('prof-banner');
   if(savedBanner&&banner){banner.style.background='none';banner.style.backgroundImage=`url(${savedBanner})`;banner.style.backgroundSize='cover';banner.style.backgroundPosition='center';}
   else if(banner){banner.className='prof-banner '+(user.avatar_color||'rust');}
-  document.getElementById('prof-skills').innerHTML=parseArr(user.skills).map(s=>`<div class="sk-bar"><div class="sk-n"><span>${s}</span></div><div class="sk-track"><div class="sk-fill" style="width:${70+Math.floor(Math.random()*25)}%"></div></div></div>`).join('');
-  document.getElementById('prof-genres').innerHTML=parseArr(user.genres).map(g=>`<span class="tag rust">${g}</span>`).join('');
+
+  // Collaboration Score
+  const collabScore=Math.min(100,(user.projects?.length||0)*20+(user.experience_years||0)*2);
+  const scoreWrap=document.getElementById('prof-collab-score-wrap');
+  const scoreEl=document.getElementById('prof-collab-score');
+  if(scoreEl)scoreEl.textContent=collabScore;
+  if(scoreWrap)scoreWrap.style.display=collabScore>0?'inline-flex':'none';
+
+  // Animated skill bars (staggered)
+  const skills=parseArr(user.skills);
+  document.getElementById('prof-skills').innerHTML=skills.map((s,i)=>{
+    const pct=70+Math.floor(Math.random()*25);
+    return`<div class="sk-bar"><div class="sk-n"><span>${sanitize(s)}</span></div><div class="sk-track"><div class="sk-fill" style="width:0%;transition:width 0.8s cubic-bezier(.22,1,.36,1) ${i*100}ms" data-pct="${pct}"></div></div></div>`;
+  }).join('');
+  // Trigger animation on next frame
+  requestAnimationFrame(()=>document.querySelectorAll('.sk-fill[data-pct]').forEach(el=>{el.style.width=el.dataset.pct+'%';}));
+
+  document.getElementById('prof-genres').innerHTML=parseArr(user.genres).map(g=>`<span class="tag rust">${sanitize(g)}</span>`).join('');
   document.getElementById('my-projects-list').innerHTML=(user.projects||[]).map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--card);border:1.5px solid var(--border);border-radius:7px">
-    <div style="flex:1"><div style="font-size:0.83rem;font-weight:700">${p.title}</div><div style="font-size:0.7rem;color:var(--muted)">${p.type}</div></div>
+    <div style="flex:1"><div style="font-size:0.83rem;font-weight:700">${sanitize(p.title)}</div><div style="font-size:0.7rem;color:var(--muted)">${sanitize(p.type)}</div></div>
     <span class="tag ${p.status==='open'?'green':''}">${p.status}</span>
     <button class="btn-sm" onclick="viewInterests('${p.id}','${esc(p.title)}')">Interests</button>
   </div>`).join('')||'<div style="font-size:0.8rem;color:var(--muted)">No projects yet. <button class="btn-sm" onclick="goPage(\'post-project\')">Post one!</button></div>';
-  document.getElementById('collab-history').innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--card);border:1.5px solid var(--border);border-radius:7px"><div class="ow-av" style="width:28px;height:28px;font-size:0.62rem">RT</div><div style="flex:1"><div style="font-size:0.82rem;font-weight:700">Roshan Tamang · Short Film "Bato"</div><div style="font-size:0.7rem;color:var(--muted)">Soundtrack Composer · 2024</div></div><span class="tag green">Done</span></div>
-    <div style="display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--card);border:1.5px solid var(--border);border-radius:7px"><div class="ow-av" style="width:28px;height:28px;font-size:0.62rem;background:var(--himalaya-light);color:var(--himalaya2)">SK</div><div style="flex:1"><div style="font-size:0.82rem;font-weight:700">Sanjay KC · Himalaya EP</div><div style="font-size:0.7rem;color:var(--muted)">Lead Vocals · Ongoing</div></div><span class="tag gold">Active</span></div>`;
+
+  // Real collaboration history
+  document.getElementById('collab-history').innerHTML='<div style="font-size:0.8rem;color:var(--muted);font-style:italic;padding:8px 0">Your accepted collaborations will appear here.</div>';
   renderPortfolio();
 }
 function showEditProfile(){
@@ -1737,18 +2084,22 @@ function showEditProfile(){
     <div class="modal-body">
       <div class="fgrp"><label class="flbl">Name</label><input class="finp" id="ep-name" value="${u.name||''}"/></div>
       <div class="fgrp"><label class="flbl">Role / Title</label><input class="finp" id="ep-role" value="${u.role||''}" placeholder="Singer, Filmmaker, Poet…"/></div>
-      <div class="fgrp"><label class="flbl">Bio</label><textarea class="finp" id="ep-bio" style="height:80px">${u.bio||''}</textarea></div>
+      <div class="fgrp"><label class="flbl">Bio <span id="ep-bio-cc" style="float:right;font-size:0.68rem;color:var(--muted2)">${(u.bio||'').length}/200</span></label><textarea class="finp" id="ep-bio" style="height:80px" maxlength="200" oninput="const cc=document.getElementById('ep-bio-cc');cc.textContent=this.value.length+'/200';cc.style.color=this.value.length>=180?'var(--rust)':'var(--muted2)'">${u.bio||''}</textarea></div>
       <div class="fgrp"><label class="flbl">Location</label><input class="finp" id="ep-loc" value="${u.location||''}"/></div>
       <div class="fgrp"><label class="flbl">Years Experience</label><input class="finp" type="number" id="ep-exp" value="${u.experience_years||0}" min="0" max="50" style="width:80px"/></div>
       <div class="fgrp"><label class="flbl">Skills (comma separated)</label><input class="finp" id="ep-skills" value="${parseArr(u.skills).join(', ')}"/></div>
       <div class="fgrp"><label class="flbl">Genres (comma separated)</label><input class="finp" id="ep-genres" value="${parseArr(u.genres).join(', ')}"/></div>
     </div>
-    <div class="modal-foot"><button class="btn-o" onclick="closeOverlay()">Cancel</button><button class="btn-p" onclick="saveProfile()">Save Changes</button></div>`);
+    <div class="modal-foot"><button class="btn-o" onclick="closeOverlay()">Cancel</button><button class="btn-p" id="ep-save-btn" onclick="saveProfile()">Save Changes</button></div>`);
 }
 async function saveProfile(){
+  const restore=btnLoad(document.getElementById('ep-save-btn'),'Saving…');
   const body={name:document.getElementById('ep-name')?.value.trim(),role:document.getElementById('ep-role')?.value.trim(),bio:document.getElementById('ep-bio')?.value.trim(),location:document.getElementById('ep-loc')?.value.trim(),experience_years:parseInt(document.getElementById('ep-exp')?.value)||0,skills:document.getElementById('ep-skills')?.value.split(',').map(s=>s.trim()).filter(Boolean),genres:document.getElementById('ep-genres')?.value.split(',').map(s=>s.trim()).filter(Boolean)};
-  const res=await api('/users/me',{method:'PATCH',body});closeOverlay();if(res?.error)return toast('Error: '+res.error);
-  S.user={...S.user,...res};localStorage.setItem('kc_user',JSON.stringify(S.user));updateNavAv();toast('Profile updated!');loadProfile();
+  try{
+    const res=await api('/users/me',{method:'PATCH',body});
+    if(res?.error){restore();return toast('Error: '+res.error);}
+    S.user={...S.user,...res};localStorage.setItem('kc_user',JSON.stringify(S.user));updateNavAv();toast('Profile updated!');loadProfile();closeOverlay();
+  }finally{restore();}
 }
 
 // ── POST PROJECT ──────────────────────────────────────────────────────────
@@ -1779,6 +2130,25 @@ async function publishProject(){
   if(res?.error)return toast('Error: '+res.error);
   toast('Project is now live!');goPage('projects');
 }
+
+// ── RIPPLE EFFECT ─────────────────────────────────────────────────────────
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('.btn-p');if(!btn||btn.disabled)return;
+  const r=btn.getBoundingClientRect();
+  const sz=Math.max(r.width,r.height);
+  const rip=document.createElement('span');
+  rip.className='ripple';
+  rip.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-r.left-sz/2}px;top:${e.clientY-r.top-sz/2}px`;
+  btn.appendChild(rip);
+  setTimeout(()=>rip.remove(),650);
+});
+// Scale on mousedown
+document.addEventListener('mousedown',e=>{const b=e.target.closest('.btn-p');if(b&&!b.disabled)b.style.transform='scale(0.97)';});
+document.addEventListener('mouseup',e=>{const b=e.target.closest('.btn-p');if(b)b.style.transform='';});
+
+// ── DEBOUNCED SEARCH HANDLERS ─────────────────────────────────────────────
+const debouncedLoadProjects=debounce(loadProjects,300);
+const debouncedLoadCreators=debounce(loadCreators,300);
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 if(S.token&&S.user){loginSuccess(S.token,S.user);}
