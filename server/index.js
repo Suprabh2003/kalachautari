@@ -139,6 +139,7 @@ async function setupSchema() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+  await db(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo TEXT DEFAULT ''`);
   console.log('Schema ready');
 }
 
@@ -225,6 +226,18 @@ app.use('/uploads', express.static(UPLOAD_DIR));
 const upload = multer({ dest: UPLOAD_DIR, limits: { fileSize: 100 * 1024 * 1024 } });
 const wsClients = new Map();
 
+// Simple 30-second in-memory cache for GET /api/projects and GET /api/users
+const projCache = new Map();
+const userCache = new Map();
+const CACHE_TTL = 30000;
+function getCached(map, key) {
+  const item = map.get(key);
+  if (!item) return null;
+  if (Date.now() - item.ts > CACHE_TTL) { map.delete(key); return null; }
+  return item.data;
+}
+function setCached(map, key, data) { map.set(key, { data, ts: Date.now() }); }
+
 async function pushNotif(userId, type, title, body='', link='') {
   await db(`INSERT INTO notifications (id,user_id,type,title,body,link) VALUES ($1,$2,$3,$4,$5,$6)`, [uuid(),userId,type,title,body,link]);
   const ws = wsClients.get(userId);
@@ -243,7 +256,7 @@ app.post('/api/auth/register', async (req, res) => {
   await db(`INSERT INTO users (id,name,email,password,role,location,disciplines,avatar_init,avatar_color) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
     [id, name, email, hash, role||'', location||'', JSON.stringify(disciplines||[]), name.charAt(0).toUpperCase(), color]);
   const token = jwt.sign({id,name,email}, JWT_SECRET, {expiresIn:'30d'});
-  const user = await dbOne('SELECT id,name,name_np,email,role,bio,bio_np,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote FROM users WHERE id=$1', [id]);
+  const user = await dbOne('SELECT id,name,name_np,email,role,bio,bio_np,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote,profile_photo FROM users WHERE id=$1', [id]);
   res.json({ token, user });
 });
 
@@ -259,7 +272,12 @@ app.post('/api/auth/login', async (req, res) => {
 // ─── USERS ────────────────────────────────────────────────────────────────────
 app.get('/api/users', optAuth, async (req, res) => {
   const { type, search } = req.query;
-  let sql = `SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote,created_at FROM users WHERE 1=1`;
+  const cacheKey = (type||'') + '|' + (search||'');
+  if (!type && !search) {
+    const cached = getCached(userCache, cacheKey);
+    if (cached) return res.json(cached);
+  }
+  let sql = `SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote,profile_photo,created_at FROM users WHERE 1=1`;
   const params = [];
   if (type) { params.push(`%${type}%`); sql += ` AND disciplines::text ILIKE $${params.length}`; }
   if (search) {
@@ -269,28 +287,45 @@ app.get('/api/users', optAuth, async (req, res) => {
     sql += ` AND (name ILIKE $${si} OR role ILIKE $${si2} OR skills::text ILIKE $${si3})`;
   }
   sql += ` ORDER BY created_at DESC`;
-  res.json(await dbAll(sql, params));
+  const result = await dbAll(sql, params);
+  if (!type && !search) setCached(userCache, cacheKey, result);
+  res.json(result);
 });
 
 app.get('/api/users/:id', async (req, res) => {
-  const u = await dbOne('SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote,created_at FROM users WHERE id=$1', [req.params.id]);
+  const u = await dbOne('SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote,profile_photo,created_at FROM users WHERE id=$1', [req.params.id]);
   if (!u) return res.status(404).json({ error:'Not found' });
   u.projects  = await dbAll('SELECT id,title,type,status FROM projects WHERE owner_id=$1 AND status=$2', [req.params.id,'open']);
   u.portfolio = await dbAll('SELECT * FROM portfolio_items WHERE user_id=$1 ORDER BY created_at DESC', [req.params.id]);
   res.json(u);
 });
 
+app.patch('/api/users/me/photo', auth, async (req, res) => {
+  const { photo } = req.body;
+  if (!photo) return res.status(400).json({ error: 'No photo provided' });
+  if (photo.length > 2000000) return res.status(413).json({ error: 'Photo too large (max ~1.5MB)' });
+  await db('UPDATE users SET profile_photo=$1 WHERE id=$2', [photo, req.user.id]);
+  projCache.clear(); userCache.clear();
+  res.json({ ok: true, profile_photo: photo });
+});
+
 app.patch('/api/users/me', auth, async (req, res) => {
   const { name, name_np, role, bio, bio_np, location, disciplines, skills, genres, experience_years, open_to_remote } = req.body;
+  userCache.clear();
   await db(`UPDATE users SET name=COALESCE($1,name),name_np=COALESCE($2,name_np),role=COALESCE($3,role),bio=COALESCE($4,bio),bio_np=COALESCE($5,bio_np),location=COALESCE($6,location),disciplines=COALESCE($7::jsonb,disciplines),skills=COALESCE($8::jsonb,skills),genres=COALESCE($9::jsonb,genres),experience_years=COALESCE($10,experience_years),open_to_remote=COALESCE($11,open_to_remote) WHERE id=$12`,
     [name||null,name_np||null,role||null,bio||null,bio_np||null,location||null,disciplines?JSON.stringify(disciplines):null,skills?JSON.stringify(skills):null,genres?JSON.stringify(genres):null,experience_years||null,open_to_remote!==undefined?(open_to_remote?1:0):null,req.user.id]);
-  res.json(await dbOne('SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote FROM users WHERE id=$1', [req.user.id]));
+  res.json(await dbOne('SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote,profile_photo FROM users WHERE id=$1', [req.user.id]));
 });
 
 // ─── PROJECTS ─────────────────────────────────────────────────────────────────
 app.get('/api/projects', optAuth, async (req, res) => {
   const { type, remote, search, status } = req.query;
-  let sql = `SELECT p.*,u.name as owner_name,u.avatar_init as owner_init,u.avatar_color as owner_color,(SELECT COUNT(*) FROM interests WHERE project_id=p.id) as interest_count FROM projects p JOIN users u ON p.owner_id=u.id WHERE 1=1`;
+  const cacheKey = `${type||''}|${remote||''}|${search||''}|${status||''}`;
+  if (!type && !remote && !search && !status) {
+    const cached = getCached(projCache, cacheKey);
+    if (cached) return res.json(cached);
+  }
+  let sql = `SELECT p.*,u.name as owner_name,u.avatar_init as owner_init,u.avatar_color as owner_color,u.profile_photo as owner_photo,(SELECT COUNT(*) FROM interests WHERE project_id=p.id) as interest_count FROM projects p JOIN users u ON p.owner_id=u.id WHERE 1=1`;
   const params = [];
   if (status) { params.push(status); sql += ` AND p.status=$${params.length}`; } else sql += ` AND p.status='open'`;
   if (type) { params.push(type); sql += ` AND p.type=$${params.length}`; }
@@ -301,18 +336,20 @@ app.get('/api/projects', optAuth, async (req, res) => {
     sql += ` AND (p.title ILIKE $${ps1} OR p.description ILIKE $${ps2})`;
   }
   sql += ` ORDER BY p.created_at DESC`;
-  res.json(await dbAll(sql, params));
+  const result = await dbAll(sql, params);
+  if (!type && !remote && !search && !status) setCached(projCache, cacheKey, result);
+  res.json(result);
 });
 
 app.get('/api/projects/:id', optAuth, async (req, res) => {
-  const p = await dbOne(`SELECT p.*,u.name as owner_name,u.avatar_init as owner_init,u.avatar_color as owner_color,(SELECT COUNT(*) FROM interests WHERE project_id=p.id) as interest_count FROM projects p JOIN users u ON p.owner_id=u.id WHERE p.id=$1`, [req.params.id]);
+  const p = await dbOne(`SELECT p.*,u.name as owner_name,u.avatar_init as owner_init,u.avatar_color as owner_color,u.profile_photo as owner_photo,(SELECT COUNT(*) FROM interests WHERE project_id=p.id) as interest_count FROM projects p JOIN users u ON p.owner_id=u.id WHERE p.id=$1`, [req.params.id]);
   if (!p) return res.status(404).json({ error:'Not found' });
   await db(`UPDATE projects SET view_count=view_count+1 WHERE id=$1`, [req.params.id]);
   if (req.user) p.my_interest = await dbOne('SELECT * FROM interests WHERE project_id=$1 AND user_id=$2', [req.params.id, req.user.id]);
   res.json(p);
 });
 
-app.post('/api/projects', auth, async (req, res) => {
+app.post('/api/projects', auth, async (req, res) => { projCache.clear();
   const { title,title_np,type,description,description_np,roles_needed,timeline,location,remote_ok,experience_req,max_collaborators,media_links,cover_url } = req.body;
   if (!title||!type) return res.status(400).json({ error:'title and type required' });
   const id = uuid();
@@ -399,7 +436,7 @@ app.get('/api/matches/suggestions', auth, async (req, res) => {
   const seen = await dbAll(`SELECT user_b as id FROM matches WHERE user_a=$1 UNION SELECT user_a as id FROM matches WHERE user_b=$1`, [req.user.id]);
   const seenIds = [...seen.map(r=>r.id), req.user.id];
   const placeholders = seenIds.map((_,i)=>`$${i+1}`).join(',');
-  const candidates = await dbAll(`SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote FROM users WHERE id NOT IN (${placeholders}) ORDER BY RANDOM() LIMIT 20`, seenIds);
+  const candidates = await dbAll(`SELECT id,name,name_np,role,bio,location,disciplines,skills,genres,avatar_init,avatar_color,experience_years,open_to_remote,profile_photo FROM users WHERE id NOT IN (${placeholders}) ORDER BY RANDOM() LIMIT 20`, seenIds);
   const myGenres = me.genres || [];
   const myDisc = me.disciplines || [];
   const scored = candidates.map(u => {
@@ -416,7 +453,7 @@ app.get('/api/matches/suggestions', auth, async (req, res) => {
 app.get('/api/conversations', auth, async (req, res) => {
   const convs = await dbAll(`SELECT c.*,(SELECT content FROM messages WHERE conv_id=c.id ORDER BY created_at DESC LIMIT 1) as last_msg,(SELECT created_at FROM messages WHERE conv_id=c.id ORDER BY created_at DESC LIMIT 1) as last_time,(SELECT COUNT(*) FROM conv_members WHERE conv_id=c.id) as member_count FROM conversations c JOIN conv_members cm ON c.id=cm.conv_id WHERE cm.user_id=$1 ORDER BY last_time DESC NULLS LAST`, [req.user.id]);
   for (const c of convs) {
-    c.members = await dbAll(`SELECT u.id,u.name,u.avatar_init,u.avatar_color FROM conv_members cm JOIN users u ON cm.user_id=u.id WHERE cm.conv_id=$1`, [c.id]);
+    c.members = await dbAll(`SELECT u.id,u.name,u.avatar_init,u.avatar_color,u.profile_photo FROM conv_members cm JOIN users u ON cm.user_id=u.id WHERE cm.conv_id=$1`, [c.id]);
   }
   res.json(convs);
 });
@@ -514,7 +551,7 @@ app.post('/api/upload', auth, upload.single('file'), (req, res) => {
 // ─── FORUM ────────────────────────────────────────────────────────────────────
 app.get('/api/forum', async (req, res) => {
   const { category } = req.query;
-  let sql = `SELECT f.*,u.name as author_name,u.avatar_init,u.avatar_color,u.id as author_id
+  let sql = `SELECT f.*,u.name as author_name,u.avatar_init,u.avatar_color,u.profile_photo as author_photo,u.id as author_id
     FROM forum_posts f JOIN users u ON f.user_id=u.id WHERE 1=1`;
   const params = [];
   if (category && category !== 'all') { params.push(category); sql += ` AND f.category=$${params.length}`; }
